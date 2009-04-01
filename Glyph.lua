@@ -6,10 +6,13 @@ local reagentPrice = {
 }
 
 function TradeHelper:PickGlyph(lowestProfit)
+  if lowestProfit == nil then lowestProfit = 0 end
+  
   -- Open the trade skill window
   CastSpellByName("Inscription")
   
   local subClass
+  local profitTable = {}
   for recipeIndex=1, GetNumTradeSkills() do
     local name, type, _, _, _ = GetTradeSkillInfo(recipeIndex)
     if type == "header" then
@@ -21,7 +24,6 @@ function TradeHelper:PickGlyph(lowestProfit)
       local productPrice, _, _, _, infoString = AucAdvanced.API.GetBestMatch(product, "market")
       -- Filter out those can not match lowest price
       if productPrice>0 and not infoString:find("Can not match") then
-        self:Print(ChatFrame2, subClass.." - "..name.." * "..productCount..": "..productPrice)
         local cost = 0
         for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
           local reagentName, _, reagentCount, _ = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
@@ -29,8 +31,19 @@ function TradeHelper:PickGlyph(lowestProfit)
           cost = cost + reagentPrice[reagentId] * reagentCount
         end
         local profit = productPrice * productCount - cost
+        if profit >= lowestProfit then
+          tinsert(profitTable, {Product = product, Profit = profit})
+        end
       end
     end
+  end
+  
+  sort(profitTable, function (a,b)
+    return a.Profit > b.Profit
+  end)
+  
+  for _, v in ipairs(profitTable) do
+    self:Print(v.Product..": "..v.Profit)
   end
 end
 
@@ -61,7 +74,7 @@ function TradeHelper:GetInkPrice(marketPercent)
       local inkCount = GetTradeSkillNumMade(recipeIndex)
       local _, _, pigmentCount, _ = GetTradeSkillReagentInfo(recipeIndex, 1)
       local pigmentId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, 1))
-      reagentPrice[inkId] = pigmentPrice[pigmentId] * pigmentCount / inkCount
+      reagentPrice[inkId] = floor(pigmentPrice[pigmentId] * pigmentCount / inkCount)
       self:Print(GetTradeSkillItemLink(recipeIndex)..reagentPrice[inkId])
     end
   end

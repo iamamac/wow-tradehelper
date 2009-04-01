@@ -1,9 +1,13 @@
-local reagentPrice = {
+local parchmentPrice = {
   [39354] = 12,		-- Light Parchment
   [10648] = 100,	-- Common Parchment
   [39501] = 1000,	-- Heavy Parchment
   [39502] = 4000,	-- Resilient Parchment
 }
+
+local pigmentPrice = {}
+
+local inkPrice = {}
 
 function TradeHelper:PickGlyph(lowestProfit)
   if lowestProfit == nil then lowestProfit = 0 end
@@ -28,7 +32,7 @@ function TradeHelper:PickGlyph(lowestProfit)
         for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
           local reagentName, _, reagentCount, _ = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
           local reagentId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, reagentIndex))
-          cost = cost + reagentPrice[reagentId] * reagentCount
+          cost = cost + (inkPrice[reagentId] or parchmentPrice[reagentId]) * reagentCount
         end
         local profit = productPrice * productCount - cost
         if profit >= lowestProfit then
@@ -51,7 +55,6 @@ function TradeHelper:GetInkPrice(marketPercent)
   if marketPercent == nil then marketPercent = 1 end
   
   -- Herb to pigment
-  local pigmentPrice = {}
   for herbId, group in pairs(Enchantrix.Constants.MillableItems) do
     for pigmentId, millCount in pairs(Enchantrix.Constants.MillGroupYields[group]) do
       local _, link = GetItemInfo(herbId)
@@ -74,8 +77,8 @@ function TradeHelper:GetInkPrice(marketPercent)
       local inkCount = GetTradeSkillNumMade(recipeIndex)
       local _, _, pigmentCount, _ = GetTradeSkillReagentInfo(recipeIndex, 1)
       local pigmentId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, 1))
-      reagentPrice[inkId] = floor(pigmentPrice[pigmentId] * pigmentCount / inkCount)
-      self:Print(GetTradeSkillItemLink(recipeIndex)..reagentPrice[inkId])
+      inkPrice[inkId] = floor(pigmentPrice[pigmentId] * pigmentCount / inkCount)
+      self:Print(GetTradeSkillItemLink(recipeIndex)..inkPrice[inkId])
     end
   end
   CloseTradeSkill()

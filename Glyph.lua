@@ -1,4 +1,7 @@
 function TradeHelper:PickGlyph(lowestProfit)
+  -- Open the trade skill window
+  CastSpellByName("Inscription")
+  
   local subClass
   for recipeId=1, GetNumTradeSkills() do
     local name, type, _, _, _ = GetTradeSkillInfo(recipeId)

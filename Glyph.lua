@@ -45,7 +45,7 @@ function TradeHelper:PickGlyph(lowestProfit)
   end)
   
   for _, v in ipairs(profitTable) do
-    self:Print(v.Product..": "..v.Profit)
+    self:Print(v.Product..": "..self:FormatMoney(v.Profit))
   end
 end
 
@@ -82,7 +82,7 @@ function TradeHelper:GetInkPrice(marketPercent)
       local _, _, pigmentCount, _ = GetTradeSkillReagentInfo(recipeIndex, 1)
       local pigmentId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, 1))
       inkPrice[inkId] = floor(pigmentPrice[pigmentId] * pigmentCount / inkCount)
-      self:Print(GetTradeSkillItemLink(recipeIndex)..inkPrice[inkId])
+      self:Print(GetTradeSkillItemLink(recipeIndex)..": "..self:FormatMoney(inkPrice[inkId]))
     end
   end
   CloseTradeSkill()

@@ -30,11 +30,15 @@ function TradeHelper:PickGlyph(lowestProfit)
         for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
           local reagentName, _, reagentCount, _ = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
           local reagentId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, reagentIndex))
-          cost = cost + (inkPrice[reagentId] or parchmentPrice[reagentId]) * reagentCount
+          local price = inkPrice[reagentId] or parchmentPrice[reagentId]
+          if price == nil then cost = nil; break end
+          cost = cost + price * reagentCount
         end
-        local profit = productPrice * productCount - cost
-        if profit >= lowestProfit then
-          tinsert(profitTable, {Product = product, Profit = profit})
+        if cost then
+          local profit = productPrice * productCount - cost
+          if profit >= lowestProfit then
+            tinsert(profitTable, {Product = product, Profit = profit})
+          end
         end
       end
     end

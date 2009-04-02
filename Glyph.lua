@@ -5,14 +5,13 @@ local parchmentPrice = {
   [39502] = 4000,	-- Resilient Parchment
 }
 
-local inkPrice = {}
-
 function TradeHelper:PickGlyph(lowestProfit)
   if lowestProfit == nil then lowestProfit = 0 end
   
   -- Open the trade skill window
   CastSpellByName("Inscription")
   
+  local inkPrice = self.db.profile.inkPrice
   local subClass
   local profitTable = {}
   for recipeIndex=1, GetNumTradeSkills() do
@@ -78,6 +77,7 @@ function TradeHelper:GetInkPrice(marketPercent)
   
   -- Pigment to ink
   CastSpellByName("Inscription")
+  local inkPrice = self.db.profile.inkPrice
   for recipeIndex=1, GetNumTradeSkills() do
     local name, type, _, _, _ = GetTradeSkillInfo(recipeIndex)
     if strfind(name, "Ink") then

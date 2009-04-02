@@ -5,8 +5,6 @@ local parchmentPrice = {
   [39502] = 4000,	-- Resilient Parchment
 }
 
-local pigmentPrice = {}
-
 local inkPrice = {}
 
 function TradeHelper:PickGlyph(lowestProfit)
@@ -51,10 +49,10 @@ function TradeHelper:PickGlyph(lowestProfit)
   end
 end
 
-function TradeHelper:GetInkPrice(marketPercent)
+function TradeHelper:GetPigmentPrice(marketPercent)
   if marketPercent == nil then marketPercent = 1 end
   
-  -- Herb to pigment
+  local pigmentPrice = {}
   for herbId, group in pairs(Enchantrix.Constants.MillableItems) do
     for pigmentId, millCount in pairs(Enchantrix.Constants.MillGroupYields[group]) do
       local _, link = GetItemInfo(herbId)
@@ -67,6 +65,12 @@ function TradeHelper:GetInkPrice(marketPercent)
       end
     end
   end
+  return pigmentPrice
+end
+
+function TradeHelper:GetInkPrice(marketPercent)
+  -- Herb to pigment
+  local pigmentPrice = self:GetPigmentPrice(marketPercent)
   
   -- Pigment to ink
   CastSpellByName("Inscription")
@@ -82,4 +86,18 @@ function TradeHelper:GetInkPrice(marketPercent)
     end
   end
   CloseTradeSkill()
+end
+
+function TradeHelper:BuildHerbSnatchList(marketPercent)
+  local pigmentPrice = self:GetPigmentPrice(marketPercent)
+  
+  for herbId, group in pairs(Enchantrix.Constants.MillableItems) do
+    for pigmentId, millCount in pairs(Enchantrix.Constants.MillGroupYields[group]) do
+      if pigmentPrice[pigmentId] then
+        local _, link = GetItemInfo(herbId)
+        local herbPrice = pigmentPrice[pigmentId] * millCount / 5
+        AucSearchUI.Searchers.Snatch.AddSnatch(link, herbPrice)
+      end
+    end
+  end
 end

@@ -2,9 +2,12 @@ TradeHelper = LibStub("AceAddon-3.0"):NewAddon("TradeHelper", "AceConsole-3.0")
 
 local abacus = LibStub("LibAbacus-3.0")
 
+local profileDB
 local defaults = {
   profile = {
     inkPrice = {},
+    marketPercent = 1,
+    lowestProfit = 0,
   },
 }
 
@@ -14,18 +17,70 @@ local options = {
     general = {
       type = "group",
       name = "General",
+      cmdInline = true,
       args = {},
     },
     glyph = {
       type = "group",
       name = "Glyph Business",
-      args = {},
+      args = {
+        profit = {
+          type = "input",
+          name = "Lowest profit",
+          desc = "Glyphs under this profit will not be picked out",
+          order = 0,
+          pattern = "^%d+$",
+          get = function(info) return tostring(profileDB.lowestProfit) end,
+          set = function(info, value) profileDB.lowestProfit = tonumber(value) end,
+        },
+        pick = {
+          type = "execute",
+          name = "Pick",
+          desc = "Pick glyphs which have the most profit",
+          order = 1,
+          func = function(info) TradeHelper:PickGlyph(profileDB.lowestProfit) end,
+        },
+        reagent = {
+          type = "group",
+          name = "Reagent price",
+          order = 2,
+          inline = true,
+          args = {
+            separator = {
+              type = "description",
+              name = "",
+              order = -3,
+              cmdHidden = true,
+            },
+            percent = {
+              type = "range",
+              name = "Market percent",
+              desc = "The percent of market price to purchase reagents",
+              order = -2,
+              min = 0,
+              max = 1,
+              step = 0.01,
+              isPercent = true,
+              get = function(info) return profileDB.marketPercent end,
+              set = function(info, value) profileDB.marketPercent = value end,
+            },
+            reset = {
+              type = "execute",
+              name = "Reset",
+              desc = "Reset reagent prices according to market price",
+              order = -1,
+              func = function(info) TradeHelper:GetInkPrice(profileDB.marketPercent) end,
+            },
+          },
+        },
+      },
     },
   },
 }
 
 function TradeHelper:OnInitialize()
   self.db = LibStub("AceDB-3.0"):New("TradeHelperDB", defaults)
+  profileDB = self.db.profile
   self:SetupOptions()
 end
 
@@ -34,18 +89,21 @@ function TradeHelper:FormatMoney(value)
 end
 
 function TradeHelper:SetupOptions()
-  local inkPrice = self.db.profile.inkPrice
+  local inkPrice = profileDB.inkPrice
   for id, price in pairs(inkPrice) do
     local _, link = GetItemInfo(id)
-    options.args.glyph.args[link] = {
+    options.args.glyph.args.reagent.args[link] = {
       type = "input",
       name = link,
+      cmdHidden = true,
+      pattern = "^%d+$",
       get = function(info) return tostring(inkPrice[id]) end,
       set = function(info, value) inkPrice[id] = tonumber(value) end,
     }
   end
   
-  LibStub("AceConfig-3.0"):RegisterOptionsTable("TradeHelper", options, {"th"})
-  LibStub("AceConfigDialog-3.0"):AddToBlizOptions("TradeHelper", nil, nil, "general")
-  LibStub("AceConfigDialog-3.0"):AddToBlizOptions("TradeHelper", "Glyph", "TradeHelper", "glyph")
+  LibStub("AceConfig-3.0"):RegisterOptionsTable(self.name, options, {"th"})
+  local aceConfigDialog = LibStub("AceConfigDialog-3.0")
+  aceConfigDialog:AddToBlizOptions(self.name, nil, nil, "general")
+  aceConfigDialog:AddToBlizOptions(self.name, "Glyph", self.name, "glyph")
 end

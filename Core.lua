@@ -26,7 +26,7 @@ local options = {
       args = {
         profit = {
           type = "input",
-          name = "Lowest profit",
+          name = "Lowest Profit",
           desc = "Glyphs under this profit will not be picked out",
           order = 0,
           pattern = "^%d+$",
@@ -42,21 +42,21 @@ local options = {
         },
         reagent = {
           type = "group",
-          name = "Reagent price",
+          name = "Reagent Price",
           order = 2,
           inline = true,
           args = {
             separator = {
               type = "description",
               name = "",
-              order = -3,
+              order = -4,
               cmdHidden = true,
             },
             percent = {
               type = "range",
-              name = "Market percent",
+              name = "Market Percent",
               desc = "The percent of market price to purchase reagents",
-              order = -2,
+              order = -3,
               min = 0,
               max = 1,
               step = 0.01,
@@ -68,8 +68,15 @@ local options = {
               type = "execute",
               name = "Reset",
               desc = "Reset reagent prices according to market price",
-              order = -1,
+              order = -2,
               func = function(info) TradeHelper:GetInkPrice(profileDB.marketPercent) end,
+            },
+            snatch = {
+              type = "execute",
+              name = "Build Snatch List",
+              desc = "Build reagent snatch list for Auctioneer Advanced - Search UI",
+              order = -1,
+              func = function(info) TradeHelper:BuildReagentSnatchList(profileDB.marketPercent) end,
             },
           },
         },

@@ -91,9 +91,26 @@ function TradeHelper:GetInkPrice(marketPercent)
   CloseTradeSkill()
 end
 
-function TradeHelper:BuildHerbSnatchList(marketPercent)
-  local pigmentPrice = self:GetPigmentPrice(marketPercent)
+function TradeHelper:BuildReagentSnatchList(marketPercent)
+  -- Ink
+  for id, price in pairs(self.db.profile.inkPrice) do
+    local _, link, quality = GetItemInfo(id)
+    -- Rare quality inks are almost of no use
+    if quality == 1 then
+      AucSearchUI.Searchers.Snatch.AddSnatch(link, price)
+    end
+  end
   
+  -- Pigment
+  local pigmentPrice = self:GetPigmentPrice(marketPercent)
+  for id, price in pairs(pigmentPrice) do
+    local _, link, quality = GetItemInfo(id)
+    if quality == 1 then
+      AucSearchUI.Searchers.Snatch.AddSnatch(link, price)
+    end
+  end
+  
+  -- Herb
   for herbId, group in pairs(Enchantrix.Constants.MillableItems) do
     for pigmentId, millCount in pairs(Enchantrix.Constants.MillGroupYields[group]) do
       if pigmentPrice[pigmentId] then

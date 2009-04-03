@@ -8,6 +8,7 @@ local defaults = {
     inkPrice = {},
     marketPercent = 1,
     lowestProfit = 0,
+    batchSize = 2,
   },
 }
 
@@ -67,7 +68,7 @@ local options = {
             reset = {
               type = "execute",
               name = "Reset",
-              desc = "Reset reagent prices according to market price",
+              desc = "Reset reagent prices according to herb market price",
               order = -2,
               func = function(info) TradeHelper:GetInkPrice(profileDB.marketPercent) end,
             },

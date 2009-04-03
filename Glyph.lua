@@ -35,8 +35,14 @@ function TradeHelper:PickGlyph(lowestProfit)
         end
         if cost then
           local profit = productPrice * productCount - cost
-          if profit >= lowestProfit then
-            tinsert(profitTable, {Product = product, Profit = profit})
+          local num = self.db.profile.batchSize - self:ItemCountInStock(name)
+          if profit >= lowestProfit and num > 0 then
+            tinsert(profitTable, {
+              SkillId = recipeIndex,
+              Product = product,
+              Profit = profit,
+              Number = num,
+            })
           end
         end
       end
@@ -47,9 +53,32 @@ function TradeHelper:PickGlyph(lowestProfit)
     return a.Profit > b.Profit
   end)
   
+  local inkNeed = {}
+  local inkInStock = {}
+  local msg = ""
   for _, v in ipairs(profitTable) do
-    self:Print(ChatFrame2, v.Product..": "..self:FormatMoney(v.Profit))
+    msg = msg.."\n"..v.Product..": "..self:FormatMoney(v.Profit).." * "..v.Number
+    local recipeIndex = v.SkillId
+    for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
+      local reagent = GetTradeSkillReagentItemLink(recipeIndex, reagentIndex)
+      local reagentId = Enchantrix.Util.GetItemIdFromLink(reagent)
+      if inkPrice[reagentId] then
+        local _, _, count, playerCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
+        inkNeed[reagentId] = (inkNeed[reagentId] or 0) + count * v.Number
+        inkInStock[reagentId] = playerCount
+        if playerCount < count then msg = msg.." (-)" end
+      end
+    end
   end
+  msg = msg.."\nReagent missing:"
+  for id, count in pairs(inkNeed) do
+    local short = count - inkInStock[id]
+    if short > 0 then
+      local _, link = GetItemInfo(id)
+      msg = msg.."\n"..link.." * "..short
+    end
+  end
+  self:Print(ChatFrame2, msg)
 end
 
 function TradeHelper:GetPigmentPrice(marketPercent)
@@ -120,4 +149,19 @@ function TradeHelper:BuildReagentSnatchList(marketPercent)
       end
     end
   end
+end
+
+function TradeHelper:ItemCountInStock(name)
+  -- Inventory (including bank)
+  local count = GetItemCount(name, true)
+  
+  -- Auction
+  local own = AucAdvanced.Modules.Util.Appraiser.ownResults
+  if own and own[name] then
+    for _, res in pairs(own[name]) do
+      count = count + res.countBid
+    end
+  end
+  
+  return count
 end

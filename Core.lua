@@ -25,10 +25,6 @@ local options = {
 }
 
 function TradeHelper:OnInitialize()
-  if Enchantrix.Util.GetUserInscriptionSkill() == 0 then
-    self:Disable()
-    return
-  end
   self.db = LibStub("AceDB-3.0"):New("TradeHelperDB", defaults)
   self:SetupOptions()
 end

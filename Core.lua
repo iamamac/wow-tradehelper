@@ -10,6 +10,8 @@ local defaults = {
     marketPercent = 1,
     lowestProfit = 0,
     batchSize = 2,
+    timeLeftThreshold = 1,
+    risePercent = 0.5,
   },
 }
 
@@ -26,11 +28,30 @@ local options = {
       type = "group",
       name = "Glyph Business",
       args = {
+        desc1 = {
+          type = "description",
+          name = "Update Auction Image",
+          order = 0,
+          cmdHidden = true,
+        },
+        update = {
+          type = "execute",
+          name = "Update",
+          desc = "Update glyph-related items' auction data image",
+          order = 1,
+          func = function(info) TradeHelper:UpdateAuctionInscription() end,
+        },
+        desc2 = {
+          type = "description",
+          name = "Pick Glyphs to Make",
+          order = 2,
+          cmdHidden = true,
+        },
         profit = {
           type = "input",
           name = "Lowest Profit",
           desc = "Glyphs under this profit will not be picked out",
-          order = 0,
+          order = 3,
           pattern = "^%d+$",
           get = function(info) return tostring(profileDB.lowestProfit) end,
           set = function(info, value) profileDB.lowestProfit = tonumber(value) end,
@@ -39,7 +60,7 @@ local options = {
           type = "input",
           name = "Batch Size",
           desc = "Glyphs with enough stock will not be picked out",
-          order = 1,
+          order = 4,
           pattern = "^%d+$",
           get = function(info) return tostring(profileDB.batchSize) end,
           set = function(info, value) profileDB.batchSize = tonumber(value) end,
@@ -48,13 +69,51 @@ local options = {
           type = "execute",
           name = "Pick",
           desc = "Pick glyphs which have the most profit",
-          order = 2,
+          order = 5,
           func = function(info) TradeHelper:PickGlyph(profileDB.lowestProfit, profileDB.batchSize) end,
+        },
+        desc3 = {
+          type = "description",
+          name = "Cancel Undercutted Auctions",
+          order = 6,
+          cmdHidden = true,
+        },
+        time = {
+          type = "select",
+          name = "Time Left",
+          desc = "Auctions have shorter time will be canceled(own) or ignored(competitor's)",
+          order = 7,
+          values = {
+            [0] = "-",
+            [1] = "30 m",
+            [2] = "2 h",
+          },
+          get = function(info) return profileDB.timeLeftThreshold end,
+          set = function(info, value) profileDB.timeLeftThreshold = value end,
+        },
+        rise = {
+          type = "range",
+          name = "Rise Percent",
+          desc = "Cancel an auction if it can rise up much",
+          order = 8,
+          min = 0,
+          max = 1,
+          step = 0.01,
+          isPercent = true,
+          get = function(info) return profileDB.risePercent end,
+          set = function(info, value) profileDB.risePercent = value end,
+        },
+        cancel = {
+          type = "execute",
+          name = "Cancel",
+          desc = "Cancel your auctions to adjust their price",
+          order = 9,
+          func = function(info) TradeHelper:CancelUndercuttedAuction("Glyph of", timeLeftThreshold, risePercent) end,
         },
         reagent = {
           type = "group",
           name = "Reagent Price",
-          order = 3,
+          order = 10,
           inline = true,
           args = {
             separator = {
@@ -63,7 +122,7 @@ local options = {
               order = -4,
               cmdHidden = true,
             },
-            percent = {
+            market = {
               type = "range",
               name = "Market Percent",
               desc = "The percent of market price to purchase reagents",

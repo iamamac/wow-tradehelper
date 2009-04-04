@@ -5,8 +5,8 @@ local parchmentPrice = {
   [39502] = 4000,	-- Resilient Parchment
 }
 
-function TradeHelper:PickGlyph(lowestProfit)
-  if lowestProfit == nil then lowestProfit = 0 end
+function TradeHelper:PickGlyph(lowestProfit, batchSize)
+  if lowestProfit == nil or batchSize == nil then return end
   
   -- Open the trade skill window
   CastSpellByName("Inscription")
@@ -57,7 +57,7 @@ function TradeHelper:PickGlyph(lowestProfit)
   local inkInStock = {}
   local msg = ""
   for _, v in ipairs(profitTable) do
-    msg = msg.."\n"..v.Product..": "..self:FormatMoney(v.Profit).." * "..v.Number
+    msg = msg.."\n"..v.Product..": "..self:FormatMoney(v.Profit).." x "..v.Number
     local recipeIndex = v.SkillId
     for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
       local reagent = GetTradeSkillReagentItemLink(recipeIndex, reagentIndex)
@@ -70,19 +70,22 @@ function TradeHelper:PickGlyph(lowestProfit)
       end
     end
   end
-  msg = msg.."\nReagent missing:"
-  for id, count in pairs(inkNeed) do
-    local short = count - inkInStock[id]
-    if short > 0 then
-      local _, link = GetItemInfo(id)
-      msg = msg.."\n"..link.." * "..short
+  msg = msg.."\nMissing reagents:"
+  local inkReagent = self.db.profile.inkReagent
+  for inkId, inkCount in pairs(inkNeed) do
+    local inkShort = inkCount - inkInStock[inkId]
+    if inkShort > 0 then
+      local _, ink = GetItemInfo(inkId)
+      local _, pigment = GetItemInfo(inkReagent[inkId].id)
+      local herbShort = inkReagent[inkId].count * inkShort / 3 * 5
+      msg = msg.."\n"..ink.." x "..inkShort.." / "..pigment.." level herb x "..herbShort
     end
   end
   self:Print(ChatFrame2, msg)
 end
 
 function TradeHelper:GetPigmentPrice(marketPercent)
-  if marketPercent == nil then marketPercent = 1 end
+  if marketPercent == nil then return end
   
   local pigmentPrice = {}
   for herbId, group in pairs(Enchantrix.Constants.MillableItems) do
@@ -100,13 +103,14 @@ function TradeHelper:GetPigmentPrice(marketPercent)
   return pigmentPrice
 end
 
-function TradeHelper:GetInkPrice(marketPercent)
+function TradeHelper:GetInkInfo(marketPercent)
   -- Herb to pigment
   local pigmentPrice = self:GetPigmentPrice(marketPercent)
   
   -- Pigment to ink
   CastSpellByName("Inscription")
   local inkPrice = self.db.profile.inkPrice
+  local inkReagent = self.db.profile.inkReagent
   for recipeIndex=1, GetNumTradeSkills() do
     local name, type, _, _, _ = GetTradeSkillInfo(recipeIndex)
     if strfind(name, "Ink") then
@@ -115,6 +119,7 @@ function TradeHelper:GetInkPrice(marketPercent)
       local _, _, pigmentCount, _ = GetTradeSkillReagentInfo(recipeIndex, 1)
       local pigmentId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, 1))
       inkPrice[inkId] = floor(pigmentPrice[pigmentId] * pigmentCount / inkCount)
+      inkReagent[inkId] = {id = pigmentId, count = pigmentCount / inkCount}
     end
   end
   CloseTradeSkill()

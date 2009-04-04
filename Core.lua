@@ -6,6 +6,7 @@ local profileDB
 local defaults = {
   profile = {
     inkPrice = {},
+    inkReagent = {},
     marketPercent = 1,
     lowestProfit = 0,
     batchSize = 2,
@@ -34,17 +35,26 @@ local options = {
           get = function(info) return tostring(profileDB.lowestProfit) end,
           set = function(info, value) profileDB.lowestProfit = tonumber(value) end,
         },
+        batch = {
+          type = "input",
+          name = "Batch Size",
+          desc = "Glyphs with enough stock will not be picked out",
+          order = 1,
+          pattern = "^%d+$",
+          get = function(info) return tostring(profileDB.batchSize) end,
+          set = function(info, value) profileDB.batchSize = tonumber(value) end,
+        },
         pick = {
           type = "execute",
           name = "Pick",
           desc = "Pick glyphs which have the most profit",
-          order = 1,
-          func = function(info) TradeHelper:PickGlyph(profileDB.lowestProfit) end,
+          order = 2,
+          func = function(info) TradeHelper:PickGlyph(profileDB.lowestProfit, profileDB.batchSize) end,
         },
         reagent = {
           type = "group",
           name = "Reagent Price",
-          order = 2,
+          order = 3,
           inline = true,
           args = {
             separator = {
@@ -70,7 +80,7 @@ local options = {
               name = "Reset",
               desc = "Reset reagent prices according to herb market price",
               order = -2,
-              func = function(info) TradeHelper:GetInkPrice(profileDB.marketPercent) end,
+              func = function(info) TradeHelper:GetInkInfo(profileDB.marketPercent) end,
             },
             snatch = {
               type = "execute",
@@ -89,6 +99,7 @@ local options = {
 function TradeHelper:OnInitialize()
   self.db = LibStub("AceDB-3.0"):New("TradeHelperDB", defaults)
   profileDB = self.db.profile
+  if #profileDB.inkPrice == 0 then self:GetInkInfo(profileDB.marketPercent) end
   self:SetupOptions()
 end
 

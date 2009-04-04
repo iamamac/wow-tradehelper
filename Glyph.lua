@@ -66,7 +66,8 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
         local _, _, count, playerCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
         inkNeed[reagentId] = (inkNeed[reagentId] or 0) + count * v.Number
         inkInStock[reagentId] = playerCount
-        if playerCount < count then msg = msg.." (-)" end
+        local canMake = floor(playerCount / count)
+        if canMake < v.Number then msg = msg.." ("..canMake..")" end
       end
     end
   end
@@ -77,7 +78,7 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
     if inkShort > 0 then
       local _, ink = GetItemInfo(inkId)
       local _, pigment = GetItemInfo(inkReagent[inkId].id)
-      local herbShort = inkReagent[inkId].count * inkShort / 3 * 5
+      local herbShort = ceil(inkReagent[inkId].count * inkShort / 3) * 5
       msg = msg.."\n"..ink.." x "..inkShort.." / "..pigment.." level herb x "..herbShort
     end
   end

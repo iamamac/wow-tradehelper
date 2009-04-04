@@ -124,8 +124,8 @@ function TradeHelper:BuildReagentSnatchList(marketPercent)
   -- Ink
   for id, price in pairs(self.db.profile.inkPrice) do
     local _, link, quality = GetItemInfo(id)
-    -- Rare quality inks are almost of no use
-    if quality == 1 then
+    -- Rare quality inks and Ivory Ink are almost of no use
+    if quality == 1 and id ~= 37101 then
       AucSearchUI.Searchers.Snatch.AddSnatch(link, price)
     end
   end

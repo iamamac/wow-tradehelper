@@ -21,19 +21,18 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, timeLeftThreshold, ri
   end
   
   local playerName = UnitName("player")
-  local index = 1
-  while index <= GetNumAuctionItems("owner") do
-    local name, _, count, _, _, _, _, _, buyoutPrice, bidAmount = GetAuctionItemInfo("owner", index)
+  for i = 1, GetNumAuctionItems("owner") do
+    local name, _, count, _, _, _, _, _, buyoutPrice, bidAmount = GetAuctionItemInfo("owner", i)
     if count > 0 and				-- not sold
        bidAmount == 0 and			-- no one bid
        name:find(namePattern) then	-- specified name
-      local link = GetAuctionItemLink("owner", index)
+      local link = GetAuctionItemLink("owner", i)
       local undercutPrice, _, _, _, infoString = AucAdvanced.API.GetBestMatch(link, "market")
       -- Ignore those can not match lowest price
       if undercutPrice and not infoString:find("Can not match") then
         local cancel = false
         
-        local timeLeft = GetAuctionItemTimeLeft("owner", index)
+        local timeLeft = GetAuctionItemTimeLeft("owner", i)
         if timeLeft <= timeLeftThreshold then
           cancel = true
           self:Print(ChatFrame2, "Cancel "..link.." because of short time left")
@@ -62,13 +61,8 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, timeLeftThreshold, ri
           end
         end
         
-        if cancel and not dryRun then
-          CancelAuction(index)
-          -- Move up because of canceling
-          index = index - 1
-        end
+        if cancel and not dryRun then CancelAuction(i) end
       end
     end
-    index = index + 1
   end
 end

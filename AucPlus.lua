@@ -8,6 +8,7 @@ function TradeHelper:UpdateAuctionInscriptionReagent()
   AucAdvanced.Scan.PushScan()
   -- Herb (under Trade Goods - Herb)
   AucAdvanced.Scan.StartScan(nil, nil, nil, nil, 6, 6, nil, 1)
+  if not AucAdvanced.Scan.IsScanning() then return end
   -- Pigment (under Trade Goods - Other)
   AucAdvanced.Scan.StartPushedScan("Pigment", nil, nil, nil, 6, 13, nil, 1)
   -- Ink (under Trade Goods - Parts)

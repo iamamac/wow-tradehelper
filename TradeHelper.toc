@@ -6,7 +6,7 @@
 ## SavedVariables: TradeHelperDB
 ##
 ## Author: Iamamac
-## Version: 0.2
+## Version: 0.3
 ##
 Core.lua
 Glyph.lua

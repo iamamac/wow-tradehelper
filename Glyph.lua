@@ -19,7 +19,7 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
     if type == "header" then
       subClass = name
     -- Filter out uninterested recipes
-    elseif strfind(name, "Glyph of") and subClass ~= "Death Knight" then
+    elseif name:find("^Glyph of") and subClass ~= "Death Knight" then
       local product = GetTradeSkillItemLink(recipeIndex)
       local productCount = GetTradeSkillNumMade(recipeIndex)
       local productPrice, _, _, _, infoString = AucAdvanced.API.GetBestMatch(product, "market")
@@ -114,7 +114,7 @@ function TradeHelper:GetInkInfo(marketPercent)
   local inkReagent = self.db.profile.inkReagent
   for recipeIndex=1, GetNumTradeSkills() do
     local name, type, _, _, _ = GetTradeSkillInfo(recipeIndex)
-    if strfind(name, "Ink") then
+    if name:find("Ink") then
       local inkId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillItemLink(recipeIndex))
       local inkCount = GetTradeSkillNumMade(recipeIndex)
       local _, _, pigmentCount, _ = GetTradeSkillReagentInfo(recipeIndex, 1)

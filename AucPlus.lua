@@ -67,3 +67,23 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, timeLeftThreshold, ri
     end
   end
 end
+
+function TradeHelper:PostNoCompeteAuctions(namePattern, dryRun)
+  if not (AuctionFrame and AuctionFrame:IsVisible()) then
+    message("You need to talk to the auctioneer first!")
+    return
+  end
+  
+  local frame = AucAdvanced.Modules.Util.Appraiser.Private.frame
+  for _, item in ipairs(frame.list) do
+    local sig = item[1]
+    local link, name = AucAdvanced.API.GetLinkFromSig(sig)
+    if name:find(namePattern) then
+      local _, _, _, _, infoString = AucAdvanced.API.GetBestMatch(link, "market")
+      -- Do not post those can not match lowest price
+      if not infoString:find("Can not match") then
+        frame.PostBySig(sig, dryRun)
+      end
+    end
+  end
+end

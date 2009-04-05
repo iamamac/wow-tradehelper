@@ -47,7 +47,7 @@ local options = {
         },
         desc2 = {
           type = "description",
-          name = "Pick Glyphs to Make",
+          name = "Make Profitable Glyphs",
           order = 3,
           cmdHidden = true,
         },
@@ -76,14 +76,14 @@ local options = {
         pick = {
           type = "execute",
           name = "Pick",
-          desc = "Pick glyphs which have the most profit",
+          desc = "Pick out the most profitable glyphs",
           order = 6,
           width = "half",
           func = function(info) TradeHelper:PickGlyph(profileDB.lowestProfit, profileDB.batchSize) end,
         },
         desc3 = {
           type = "description",
-          name = "Cancel Undercutted Auctions",
+          name = "Redistribute Auctions",
           order = 7,
           cmdHidden = true,
         },
@@ -122,12 +122,20 @@ local options = {
           desc = "Cancel your auctions to adjust their price",
           order = 10,
           width = "half",
-          func = function(info) TradeHelper:CancelUndercuttedAuction("Glyph of", profileDB.timeLeftThreshold, profileDB.risePercent) end,
+          func = function(info) TradeHelper:CancelUndercuttedAuction("^Glyph of", profileDB.timeLeftThreshold, profileDB.risePercent) end,
+        },
+        post = {
+          type = "execute",
+          name = "Post",
+          desc = "Post glyphs which there is no competition",
+          order = 11,
+          width = "half",
+          func = function(info) TradeHelper:PostNoCompeteAuctions("^Glyph of") end,
         },
         reagent = {
           type = "group",
           name = "Reagent Price",
-          order = 11,
+          order = 12,
           inline = true,
           args = {
             separator = {

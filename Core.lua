@@ -39,6 +39,7 @@ local options = {
           name = "Update",
           desc = "Update glyph-related items' auction data image",
           order = 1,
+          width = "half",
           func = function(info) TradeHelper:UpdateAuctionInscription() end,
         },
         desc2 = {
@@ -52,6 +53,7 @@ local options = {
           name = "Lowest Profit",
           desc = "Glyphs under this profit will not be picked out",
           order = 3,
+          width = "half",
           pattern = "^%d+$",
           get = function(info) return tostring(profileDB.lowestProfit) end,
           set = function(info, value) profileDB.lowestProfit = tonumber(value) end,
@@ -61,6 +63,7 @@ local options = {
           name = "Batch Size",
           desc = "Glyphs with enough stock will not be picked out",
           order = 4,
+          width = "half",
           pattern = "^%d+$",
           get = function(info) return tostring(profileDB.batchSize) end,
           set = function(info, value) profileDB.batchSize = tonumber(value) end,
@@ -70,6 +73,7 @@ local options = {
           name = "Pick",
           desc = "Pick glyphs which have the most profit",
           order = 5,
+          width = "half",
           func = function(info) TradeHelper:PickGlyph(profileDB.lowestProfit, profileDB.batchSize) end,
         },
         desc3 = {
@@ -83,6 +87,7 @@ local options = {
           name = "Time Left",
           desc = "Auctions have shorter time will be canceled(own) or ignored(competitor's)",
           order = 7,
+          width = "half",
           values = {
             [0] = "-",
             [1] = "30 m",
@@ -96,6 +101,7 @@ local options = {
           name = "Rise Percent",
           desc = "Cancel an auction if it can rise up much",
           order = 8,
+          width = "half",
           min = 0,
           max = 1,
           step = 0.01,
@@ -108,6 +114,7 @@ local options = {
           name = "Cancel",
           desc = "Cancel your auctions to adjust their price",
           order = 9,
+          width = "half",
           func = function(info) TradeHelper:CancelUndercuttedAuction("Glyph of", profileDB.timeLeftThreshold, profileDB.risePercent) end,
         },
         reagent = {

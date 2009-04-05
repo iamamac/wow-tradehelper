@@ -10,7 +10,7 @@ function TradeHelper:UpdateAuctionInscription()
   AucAdvanced.Scan.StartPushedScan("Ink", nil, nil, nil, 6, 9, nil, 1)
 end
 
-function TradeHelper:CancelUndercuttedAuction(namePattern, timeLeftThreshold, risePercent)
+function TradeHelper:CancelUndercuttedAuction(namePattern, timeLeftThreshold, risePercent, dryRun)
   local playerName = UnitName("player")
   local index = 1
   while index <= GetNumAuctionItems("owner") do
@@ -32,8 +32,11 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, timeLeftThreshold, ri
           cancel = true
           self:Print(ChatFrame2, "Cancel "..link.." because of rising price: "..self:FormatMoney(buyoutPrice).." to "..self:FormatMoney(undercutPrice))
         else
+          local _, itemId, property, factor = AucAdvanced.DecodeLink(link)
           local data = AucAdvanced.API.QueryImage({
-            link = link,
+            itemId = itemId,
+            suffix = property,
+            factor = factor,
             minStack = count,
             maxStack = count,
             maxBuyout = buyoutPrice,
@@ -50,11 +53,11 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, timeLeftThreshold, ri
           end
         end
         
-        if cancel then
+        if cancel and not dryRun then
           CancelAuction(index)
-          CloseAuctionStaticPopups()
           -- Move up because of canceling
           index = index - 1
+        end
       end
     end
     index = index + 1

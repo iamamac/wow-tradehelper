@@ -108,7 +108,7 @@ local options = {
           name = "Cancel",
           desc = "Cancel your auctions to adjust their price",
           order = 9,
-          func = function(info) TradeHelper:CancelUndercuttedAuction("Glyph of", timeLeftThreshold, risePercent) end,
+          func = function(info) TradeHelper:CancelUndercuttedAuction("Glyph of", profileDB.timeLeftThreshold, profileDB.risePercent) end,
         },
         reagent = {
           type = "group",

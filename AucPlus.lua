@@ -1,9 +1,13 @@
-function TradeHelper:UpdateAuctionInscription()
+function TradeHelper:UpdateAuctionInscriptionGlyph()
   AucAdvanced.Scan.PushScan()
   -- Glyph (under Glyph)
   AucAdvanced.Scan.StartScan(nil, nil, nil, nil, 5, 0, nil, 1)
+end
+
+function TradeHelper:UpdateAuctionInscriptionReagent()
+  AucAdvanced.Scan.PushScan()
   -- Herb (under Trade Goods - Herb)
-  AucAdvanced.Scan.StartPushedScan(nil, nil, nil, nil, 6, 6, nil, 1)
+  AucAdvanced.Scan.StartScan(nil, nil, nil, nil, 6, 6, nil, 1)
   -- Pigment (under Trade Goods - Other)
   AucAdvanced.Scan.StartPushedScan("Pigment", nil, nil, nil, 6, 13, nil, 1)
   -- Ink (under Trade Goods - Parts)

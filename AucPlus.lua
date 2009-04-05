@@ -11,6 +11,11 @@ function TradeHelper:UpdateAuctionInscription()
 end
 
 function TradeHelper:CancelUndercuttedAuction(namePattern, timeLeftThreshold, risePercent, dryRun)
+  if not (AuctionFrame and AuctionFrame:IsVisible()) then
+    message("You need to talk to the auctioneer first!")
+    return
+  end
+  
   local playerName = UnitName("player")
   local index = 1
   while index <= GetNumAuctionItems("owner") do

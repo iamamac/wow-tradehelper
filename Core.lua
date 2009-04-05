@@ -17,13 +17,8 @@ local defaults = {
 
 local options = {
   type = "group",
+  childGroups = "tab",
   args = {
-    general = {
-      type = "group",
-      name = "General",
-      cmdInline = true,
-      args = {},
-    },
     glyph = {
       type = "group",
       name = "Glyph Business",
@@ -202,6 +197,6 @@ function TradeHelper:SetupOptions()
   
   LibStub("AceConfig-3.0"):RegisterOptionsTable(self.name, options, {"th"})
   local aceConfigDialog = LibStub("AceConfigDialog-3.0")
-  aceConfigDialog:AddToBlizOptions(self.name, nil, nil, "general")
-  aceConfigDialog:AddToBlizOptions(self.name, "Glyph", self.name, "glyph")
+  aceConfigDialog:AddToBlizOptions(self.name, self.name)
+  aceConfigDialog:AddToBlizOptions(self.name, "Glyph", self.name)
 end

@@ -206,5 +206,4 @@ function TradeHelper:SetupOptions()
   LibStub("AceConfig-3.0"):RegisterOptionsTable(self.name, options, {"th"})
   local aceConfigDialog = LibStub("AceConfigDialog-3.0")
   aceConfigDialog:AddToBlizOptions(self.name, self.name)
-  aceConfigDialog:AddToBlizOptions(self.name, "Glyph", self.name)
 end

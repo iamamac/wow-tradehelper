@@ -169,7 +169,7 @@ local options = {
               name = "Build Snatch List",
               desc = "Build reagent snatch list for Auctioneer Advanced - Search UI",
               order = -1,
-              func = function(info) TradeHelper:BuildReagentSnatchList(profileDB.marketPercent) end,
+              func = function(info) TradeHelper:BuildGlyphSnatchList(profileDB.marketPercent) end,
             },
           },
         },
@@ -206,4 +206,19 @@ function TradeHelper:SetupOptions()
   LibStub("AceConfig-3.0"):RegisterOptionsTable(self.name, options, {"th"})
   local aceConfigDialog = LibStub("AceConfigDialog-3.0")
   aceConfigDialog:AddToBlizOptions(self.name, self.name)
+end
+
+function TradeHelper:ItemCountInStock(name)
+  -- Inventory (including bank)
+  local count = GetItemCount(name, true)
+  
+  -- Auction
+  local own = AucAdvanced.Modules.Util.Appraiser.ownResults
+  if own and own[name] then
+    for _, res in pairs(own[name]) do
+      count = count + res.countBid
+    end
+  end
+  
+  return count
 end

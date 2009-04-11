@@ -15,7 +15,7 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
   local subClass
   local profitTable = {}
   for recipeIndex=1, GetNumTradeSkills() do
-    local name, type, _, _, _ = GetTradeSkillInfo(recipeIndex)
+    local name, type = GetTradeSkillInfo(recipeIndex)
     if type == "header" then
       subClass = name
     -- Filter out uninterested recipes
@@ -27,7 +27,7 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
       if productPrice>0 and not infoString:find("Can not match") then
         local cost = 0
         for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
-          local reagentName, _, reagentCount, _ = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
+          local _, _, reagentCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
           local reagentId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, reagentIndex))
           local price = inkPrice[reagentId] or parchmentPrice[reagentId]
           if price == nil then cost = nil; break end
@@ -113,11 +113,11 @@ function TradeHelper:GetInkInfo(marketPercent)
   local inkPrice = self.db.profile.inkPrice
   local inkReagent = self.db.profile.inkReagent
   for recipeIndex=1, GetNumTradeSkills() do
-    local name, type, _, _, _ = GetTradeSkillInfo(recipeIndex)
+    local name = GetTradeSkillInfo(recipeIndex)
     if name:find("Ink") then
       local inkId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillItemLink(recipeIndex))
       local inkCount = GetTradeSkillNumMade(recipeIndex)
-      local _, _, pigmentCount, _ = GetTradeSkillReagentInfo(recipeIndex, 1)
+      local _, _, pigmentCount = GetTradeSkillReagentInfo(recipeIndex, 1)
       local pigmentId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, 1))
       inkPrice[inkId] = floor(pigmentPrice[pigmentId] * pigmentCount / inkCount)
       inkReagent[inkId] = {id = pigmentId, count = pigmentCount / inkCount}
@@ -126,7 +126,7 @@ function TradeHelper:GetInkInfo(marketPercent)
   CloseTradeSkill()
 end
 
-function TradeHelper:BuildReagentSnatchList(marketPercent)
+function TradeHelper:BuildGlyphSnatchList(marketPercent)
   -- Ink
   for id, price in pairs(self.db.profile.inkPrice) do
     local _, link, quality = GetItemInfo(id)
@@ -156,19 +156,4 @@ function TradeHelper:BuildReagentSnatchList(marketPercent)
       end
     end
   end
-end
-
-function TradeHelper:ItemCountInStock(name)
-  -- Inventory (including bank)
-  local count = GetItemCount(name, true)
-  
-  -- Auction
-  local own = AucAdvanced.Modules.Util.Appraiser.ownResults
-  if own and own[name] then
-    for _, res in pairs(own[name]) do
-      count = count + res.countBid
-    end
-  end
-  
-  return count
 end

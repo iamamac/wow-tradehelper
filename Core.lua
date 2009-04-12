@@ -168,7 +168,7 @@ local options = {
               name = "Reset",
               desc = "Reset reagent prices according to herb market price",
               order = -2,
-              func = function(info) TradeHelper:GetInkInfo(glyphDB.marketPercent) end,
+              func = function(info) TradeHelper:GetInkInfo(glyphDB.marketPercent); TradeHelper:SetupOptions() end,
             },
             snatch = {
               type = "execute",
@@ -215,7 +215,7 @@ local options = {
               name = "Reset",
               desc = "Reset reagent prices according to the lower between market price and self-made price",
               order = -1,
-              func = function(info) TradeHelper:GetVellumPrice(enchantDB.marketPercent) end,
+              func = function(info) TradeHelper:GetVellumPrice(enchantDB.marketPercent); TradeHelper:SetupOptions() end,
             },
           },
         },
@@ -228,18 +228,18 @@ function TradeHelper:OnInitialize()
   self.db = LibStub("AceDB-3.0"):New("TradeHelperDB", defaults, "Default")
   glyphDB = self.db.profile.glyph
   enchantDB = self.db.profile.enchant
-  self:SetupOptions()
+  self:SetupOptions(true)
 end
 
 function TradeHelper:FormatMoney(value)
   return abacus:FormatMoneyFull(value, true)
 end
 
-function TradeHelper:SetupOptions()
+function TradeHelper:SetupOptions(init)
   local inkPrice = glyphDB.inkPrice
   for id in pairs(inkPrice) do
     local _, link = GetItemInfo(id)
-    options.args.glyph.args.reagent.args[link] = {
+    options.args.glyph.args.reagent.args[tostring(id)] = {
       type = "input",
       name = link,
       cmdHidden = true,
@@ -252,7 +252,7 @@ function TradeHelper:SetupOptions()
   local vellumPrice = enchantDB.vellumPrice
   for id in pairs(vellumPrice) do
     local _, link = GetItemInfo(id)
-    options.args.enchant.args.reagent.args[link] = {
+    options.args.enchant.args.reagent.args[tostring(id)] = {
       type = "input",
       name = link,
       cmdHidden = true,
@@ -262,9 +262,12 @@ function TradeHelper:SetupOptions()
     }
   end
   
-  LibStub("AceConfig-3.0"):RegisterOptionsTable(self.name, options, {"th"})
-  local aceConfigDialog = LibStub("AceConfigDialog-3.0")
-  aceConfigDialog:AddToBlizOptions(self.name, self.name)
+  if init then
+    LibStub("AceConfig-3.0"):RegisterOptionsTable(self.name, options, {"th"})
+    LibStub("AceConfigDialog-3.0"):AddToBlizOptions(self.name, self.name)
+  else
+    LibStub("AceConfigRegistry-3.0"):NotifyChange(self.name)
+  end
 end
 
 function TradeHelper:ItemCountInStock(name)

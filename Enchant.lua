@@ -50,7 +50,7 @@ function TradeHelper:PickScroll(lowestProfit, batchSize)
           cost = cost + price * reagentCount
         end
         if cost then
-          local profit = scrollPrice - cost
+          local profit = scrollPrice * (1 - AucAdvanced.cutRate) - cost
           local num = self.db.profile.enchant.batchSize - self:ItemCountInStock(scrollName)
           if profit >= lowestProfit and num > 0 then
             tinsert(profitTable, {

@@ -34,7 +34,7 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
           cost = cost + price * reagentCount
         end
         if cost then
-          local profit = productPrice * productCount - cost
+          local profit = productPrice * productCount * (1 - AucAdvanced.cutRate) - cost
           local num = self.db.profile.glyph.batchSize - self:ItemCountInStock(name)
           if profit >= lowestProfit and num > 0 then
             tinsert(profitTable, {

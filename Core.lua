@@ -227,9 +227,7 @@ local options = {
 function TradeHelper:OnInitialize()
   self.db = LibStub("AceDB-3.0"):New("TradeHelperDB", defaults, "Default")
   glyphDB = self.db.profile.glyph
-  if #glyphDB.inkPrice == 0 then self:GetInkInfo(glyphDB.marketPercent) end
   enchantDB = self.db.profile.enchant
-  if #enchantDB.vellumPrice == 0 then self:GetVellumPrice(enchantDB.marketPercent) end
   self:SetupOptions()
 end
 

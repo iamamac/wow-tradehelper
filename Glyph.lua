@@ -107,6 +107,7 @@ function TradeHelper:GetInkInfo(marketPercent)
   CastSpellByName("Inscription")
   local inkPrice = self.db.profile.glyph.inkPrice
   local inkReagent = self.db.profile.glyph.inkReagent
+  wipe(inkPrice)
   for recipeIndex=1, GetNumTradeSkills() do
     local name = GetTradeSkillInfo(recipeIndex)
     if name:find("Ink") then

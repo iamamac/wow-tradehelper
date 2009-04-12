@@ -85,28 +85,23 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
   self:Print(ChatFrame2, msg)
 end
 
-function TradeHelper:GetPigmentPrice(marketPercent)
+function TradeHelper:GetInkInfo(marketPercent)
   if marketPercent == nil then return end
   
+  -- Herb to pigment
   local pigmentPrice = {}
   for herbId, group in pairs(Enchantrix.Constants.MillableItems) do
-    for pigmentId, millCount in pairs(Enchantrix.Constants.MillGroupYields[group]) do
-      local _, link = GetItemInfo(herbId)
-      local herbPrice = AucAdvanced.API.GetMarketValue(link)
-      if herbPrice then
-        millPrice = herbPrice * marketPercent * 5 / millCount
+    local _, link = GetItemInfo(herbId)
+    local herbPrice = AucAdvanced.API.GetMarketValue(link)
+    if herbPrice then
+      for pigmentId, millCount in pairs(Enchantrix.Constants.MillGroupYields[group]) do
+        local millPrice = herbPrice * marketPercent * 5 / millCount
         if pigmentPrice[pigmentId] == nil or pigmentPrice[pigmentId] > millPrice then
           pigmentPrice[pigmentId] = millPrice
         end
       end
     end
   end
-  return pigmentPrice
-end
-
-function TradeHelper:GetInkInfo(marketPercent)
-  -- Herb to pigment
-  local pigmentPrice = self:GetPigmentPrice(marketPercent)
   
   -- Pigment to ink
   CastSpellByName("Inscription")
@@ -126,9 +121,10 @@ function TradeHelper:GetInkInfo(marketPercent)
   CloseTradeSkill()
 end
 
-function TradeHelper:BuildGlyphSnatchList(marketPercent)
+function TradeHelper:BuildGlyphSnatchList()
   -- Ink
-  for id, price in pairs(self.db.profile.glyph.inkPrice) do
+  local inkPrice = self.db.profile.glyph.inkPrice
+  for id, price in pairs(inkPrice) do
     local _, link, quality = GetItemInfo(id)
     -- Rare, Ivory Ink and Moonglow Ink
     if quality == 1 and id ~= 37101 and id ~= 39469 then
@@ -137,21 +133,24 @@ function TradeHelper:BuildGlyphSnatchList(marketPercent)
   end
   
   -- Pigment
-  local pigmentPrice = self:GetPigmentPrice(marketPercent)
-  for id, price in pairs(pigmentPrice) do
-    local _, link, quality = GetItemInfo(id)
+  local inkReagent = self.db.profile.glyph.inkReagent
+  local pigmentPrice = {}
+  for inkId, price in pairs(inkPrice) do
+    local pigmentId = inkReagent[inkId].id
+    local _, link, quality = GetItemInfo(pigmentId)
     -- Rare and Alabaster Pigment
-    if quality == 1 and id ~= 39151 then
-      AucSearchUI.Searchers.Snatch.AddSnatch(link, price)
+    if quality == 1 and pigmentId ~= 39151 then
+      pigmentPrice[pigmentId] = price / inkReagent[inkId].count
+      AucSearchUI.Searchers.Snatch.AddSnatch(link, floor(pigmentPrice[pigmentId]))
     end
   end
   
   -- Herb
   for herbId, group in pairs(Enchantrix.Constants.MillableItems) do
+    local _, link = GetItemInfo(herbId)
     for pigmentId, millCount in pairs(Enchantrix.Constants.MillGroupYields[group]) do
-      if pigmentPrice[pigmentId] and pigmentId ~= 39151 then
-        local _, link = GetItemInfo(herbId)
-        local herbPrice = pigmentPrice[pigmentId] * millCount / 5
+      if pigmentPrice[pigmentId] then
+        local herbPrice = floor(pigmentPrice[pigmentId] * millCount / 5)
         AucSearchUI.Searchers.Snatch.AddSnatch(link, herbPrice)
       end
     end

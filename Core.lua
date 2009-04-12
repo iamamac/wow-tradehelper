@@ -175,7 +175,7 @@ local options = {
               name = "Build Snatch List",
               desc = "Build reagent snatch list for Auctioneer Advanced - Search UI",
               order = -1,
-              func = function(info) TradeHelper:BuildGlyphSnatchList(glyphDB.marketPercent) end,
+              func = function(info) TradeHelper:BuildGlyphSnatchList() end,
             },
           },
         },

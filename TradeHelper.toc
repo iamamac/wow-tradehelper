@@ -2,7 +2,7 @@
 ## Notes: Help you picking the highest profit tradeskill items to make
 ##
 ## Interface: 30000
-## Dependencies: Auc-Advanced, Enchantrix
+## Dependencies: Auc-Advanced, Enchantrix, Enchantrix-Barker
 ## SavedVariables: TradeHelperDB
 ##
 ## Author: Iamamac
@@ -10,4 +10,5 @@
 ##
 Core.lua
 Glyph.lua
+Enchant.lua
 AucPlus.lua

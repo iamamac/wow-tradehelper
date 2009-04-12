@@ -11,7 +11,7 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
   -- Open the trade skill window
   CastSpellByName("Inscription")
   
-  local inkPrice = self.db.profile.inkPrice
+  local inkPrice = self.db.profile.glyph.inkPrice
   local subClass
   local profitTable = {}
   for recipeIndex=1, GetNumTradeSkills() do
@@ -35,7 +35,7 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
         end
         if cost then
           local profit = productPrice * productCount - cost
-          local num = self.db.profile.batchSize - self:ItemCountInStock(name)
+          local num = self.db.profile.glyph.batchSize - self:ItemCountInStock(name)
           if profit >= lowestProfit and num > 0 then
             tinsert(profitTable, {
               SkillId = recipeIndex,
@@ -72,7 +72,7 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
     end
   end
   msg = msg.."\nMissing reagents:"
-  local inkReagent = self.db.profile.inkReagent
+  local inkReagent = self.db.profile.glyph.inkReagent
   for inkId, inkCount in pairs(inkNeed) do
     local inkShort = inkCount - inkInStock[inkId]
     if inkShort > 0 then
@@ -110,8 +110,8 @@ function TradeHelper:GetInkInfo(marketPercent)
   
   -- Pigment to ink
   CastSpellByName("Inscription")
-  local inkPrice = self.db.profile.inkPrice
-  local inkReagent = self.db.profile.inkReagent
+  local inkPrice = self.db.profile.glyph.inkPrice
+  local inkReagent = self.db.profile.glyph.inkReagent
   for recipeIndex=1, GetNumTradeSkills() do
     local name = GetTradeSkillInfo(recipeIndex)
     if name:find("Ink") then
@@ -128,7 +128,7 @@ end
 
 function TradeHelper:BuildGlyphSnatchList(marketPercent)
   -- Ink
-  for id, price in pairs(self.db.profile.inkPrice) do
+  for id, price in pairs(self.db.profile.glyph.inkPrice) do
     local _, link, quality = GetItemInfo(id)
     -- Rare, Ivory Ink and Moonglow Ink
     if quality == 1 and id ~= 37101 and id ~= 39469 then
@@ -156,4 +156,29 @@ function TradeHelper:BuildGlyphSnatchList(marketPercent)
       end
     end
   end
+end
+
+function TradeHelper:GetSelfMadeVellumPrice()
+  CastSpellByName("Inscription")
+  local inkPrice = self.db.profile.glyph.inkPrice
+  local vellumPrice = {}
+  for recipeIndex=1, GetNumTradeSkills() do
+    local name = GetTradeSkillInfo(recipeIndex)
+    if name:find("Vellum") then
+      local cost = 0
+      for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
+        local _, _, reagentCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
+        local reagentId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, reagentIndex))
+        local price = inkPrice[reagentId] or parchmentPrice[reagentId]
+        if price == nil then cost = nil; break end
+        cost = cost + price * reagentCount
+      end
+      if cost then
+        local vellumId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillItemLink(recipeIndex))
+        vellumPrice[vellumId] = cost
+      end
+    end
+  end
+  CloseTradeSkill()
+  return vellumPrice
 end

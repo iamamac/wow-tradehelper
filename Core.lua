@@ -2,16 +2,22 @@ TradeHelper = LibStub("AceAddon-3.0"):NewAddon("TradeHelper", "AceConsole-3.0")
 
 local abacus = LibStub("LibAbacus-3.0")
 
-local profileDB
+local glyphDB, enchantDB
 local defaults = {
   profile = {
-    inkPrice = {},
-    inkReagent = {},
-    marketPercent = 1,
-    lowestProfit = 0,
-    batchSize = 2,
-    timeLeftThreshold = 1,
-    risePercent = 0.5,
+    glyph = {
+      inkPrice = {},
+      inkReagent = {},
+      marketPercent = 1,
+      lowestProfit = 0,
+      batchSize = 2,
+      timeLeftThreshold = 1,
+      risePercent = 0.5,
+    },
+    enchant = {
+      vellumPrice = {},
+      marketPercent = 1,
+    },
   },
 }
 
@@ -59,8 +65,8 @@ local options = {
           width = "half",
           cmdHidden = true,
           pattern = "^%d+$",
-          get = function(info) return tostring(profileDB.lowestProfit) end,
-          set = function(info, value) profileDB.lowestProfit = tonumber(value) end,
+          get = function(info) return tostring(glyphDB.lowestProfit) end,
+          set = function(info, value) glyphDB.lowestProfit = tonumber(value) end,
         },
         batch = {
           type = "input",
@@ -70,8 +76,8 @@ local options = {
           width = "half",
           cmdHidden = true,
           pattern = "^%d+$",
-          get = function(info) return tostring(profileDB.batchSize) end,
-          set = function(info, value) profileDB.batchSize = tonumber(value) end,
+          get = function(info) return tostring(glyphDB.batchSize) end,
+          set = function(info, value) glyphDB.batchSize = tonumber(value) end,
         },
         pick = {
           type = "execute",
@@ -79,7 +85,7 @@ local options = {
           desc = "Pick out the most profitable glyphs",
           order = 6,
           width = "half",
-          func = function(info) TradeHelper:PickGlyph(profileDB.lowestProfit, profileDB.batchSize) end,
+          func = function(info) TradeHelper:PickGlyph(glyphDB.lowestProfit, glyphDB.batchSize) end,
         },
         desc3 = {
           type = "description",
@@ -99,8 +105,8 @@ local options = {
             [1] = "30 m",
             [2] = "2 h",
           },
-          get = function(info) return profileDB.timeLeftThreshold end,
-          set = function(info, value) profileDB.timeLeftThreshold = value end,
+          get = function(info) return glyphDB.timeLeftThreshold end,
+          set = function(info, value) glyphDB.timeLeftThreshold = value end,
         },
         rise = {
           type = "range",
@@ -113,8 +119,8 @@ local options = {
           max = 1,
           step = 0.01,
           isPercent = true,
-          get = function(info) return profileDB.risePercent end,
-          set = function(info, value) profileDB.risePercent = value end,
+          get = function(info) return glyphDB.risePercent end,
+          set = function(info, value) glyphDB.risePercent = value end,
         },
         cancel = {
           type = "execute",
@@ -122,7 +128,7 @@ local options = {
           desc = "Cancel your auctions to adjust their price",
           order = 10,
           width = "half",
-          func = function(info) TradeHelper:CancelUndercuttedAuction("^Glyph of", profileDB.timeLeftThreshold, profileDB.risePercent) end,
+          func = function(info) TradeHelper:CancelUndercuttedAuction("^Glyph of", glyphDB.timeLeftThreshold, glyphDB.risePercent) end,
         },
         post = {
           type = "execute",
@@ -154,22 +160,62 @@ local options = {
               max = 1,
               step = 0.01,
               isPercent = true,
-              get = function(info) return profileDB.marketPercent end,
-              set = function(info, value) profileDB.marketPercent = value end,
+              get = function(info) return glyphDB.marketPercent end,
+              set = function(info, value) glyphDB.marketPercent = value end,
             },
             reset = {
               type = "execute",
               name = "Reset",
               desc = "Reset reagent prices according to herb market price",
               order = -2,
-              func = function(info) TradeHelper:GetInkInfo(profileDB.marketPercent) end,
+              func = function(info) TradeHelper:GetInkInfo(glyphDB.marketPercent) end,
             },
             snatch = {
               type = "execute",
               name = "Build Snatch List",
               desc = "Build reagent snatch list for Auctioneer Advanced - Search UI",
               order = -1,
-              func = function(info) TradeHelper:BuildGlyphSnatchList(profileDB.marketPercent) end,
+              func = function(info) TradeHelper:BuildGlyphSnatchList(glyphDB.marketPercent) end,
+            },
+          },
+        },
+      },
+    },
+    enchant = {
+      type = "group",
+      name = "Enchanting Business",
+      args = {
+        reagent = {
+          type = "group",
+          name = "Reagent Price",
+          order = 0,
+          inline = true,
+          args = {
+            separator = {
+              type = "description",
+              name = "",
+              order = -3,
+              cmdHidden = true,
+            },
+            market = {
+              type = "range",
+              name = "Market Percent",
+              desc = "The percent of market price to purchase reagents",
+              order = -2,
+              cmdHidden = true,
+              min = 0,
+              max = 1,
+              step = 0.01,
+              isPercent = true,
+              get = function(info) return enchantDB.marketPercent end,
+              set = function(info, value) enchantDB.marketPercent = value end,
+            },
+            reset = {
+              type = "execute",
+              name = "Reset",
+              desc = "Reset reagent prices according to the lower between market price and self-made price",
+              order = -1,
+              func = function(info) TradeHelper:GetVellumPrice(enchantDB.marketPercent) end,
             },
           },
         },
@@ -179,9 +225,11 @@ local options = {
 }
 
 function TradeHelper:OnInitialize()
-  self.db = LibStub("AceDB-3.0"):New("TradeHelperDB", defaults)
-  profileDB = self.db.profile
-  if #profileDB.inkPrice == 0 then self:GetInkInfo(profileDB.marketPercent) end
+  self.db = LibStub("AceDB-3.0"):New("TradeHelperDB", defaults, "Default")
+  glyphDB = self.db.profile.glyph
+  if #glyphDB.inkPrice == 0 then self:GetInkInfo(glyphDB.marketPercent) end
+  enchantDB = self.db.profile.enchant
+  if #enchantDB.vellumPrice == 0 then self:GetVellumPrice(enchantDB.marketPercent) end
   self:SetupOptions()
 end
 
@@ -190,8 +238,8 @@ function TradeHelper:FormatMoney(value)
 end
 
 function TradeHelper:SetupOptions()
-  local inkPrice = profileDB.inkPrice
-  for id, price in pairs(inkPrice) do
+  local inkPrice = glyphDB.inkPrice
+  for id in pairs(inkPrice) do
     local _, link = GetItemInfo(id)
     options.args.glyph.args.reagent.args[link] = {
       type = "input",
@@ -200,6 +248,19 @@ function TradeHelper:SetupOptions()
       pattern = "^%d+$",
       get = function(info) return tostring(inkPrice[id]) end,
       set = function(info, value) inkPrice[id] = tonumber(value) end,
+    }
+  end
+
+  local vellumPrice = enchantDB.vellumPrice
+  for id in pairs(vellumPrice) do
+    local _, link = GetItemInfo(id)
+    options.args.enchant.args.reagent.args[link] = {
+      type = "input",
+      name = link,
+      cmdHidden = true,
+      pattern = "^%d+$",
+      get = function(info) return tostring(vellumPrice[id]) end,
+      set = function(info, value) vellumPrice[id] = tonumber(value) end,
     }
   end
   

@@ -17,6 +17,8 @@ local defaults = {
     enchant = {
       vellumPrice = {},
       marketPercent = 1,
+      lowestProfit = 0,
+      batchSize = 2,
     },
   },
 }
@@ -185,10 +187,46 @@ local options = {
       type = "group",
       name = "Enchanting Business",
       args = {
+        desc = {
+          type = "description",
+          name = "Make Profitable Enchanting Scrolls",
+          order = 0,
+          cmdHidden = true,
+        },
+        profit = {
+          type = "input",
+          name = "Lowest Profit",
+          desc = "Scrolls under this profit will not be picked out",
+          order = 1,
+          width = "half",
+          cmdHidden = true,
+          pattern = "^%d+$",
+          get = function(info) return tostring(enchantDB.lowestProfit) end,
+          set = function(info, value) enchantDB.lowestProfit = tonumber(value) end,
+        },
+        batch = {
+          type = "input",
+          name = "Batch Size",
+          desc = "Scrolls with enough stock will not be picked out",
+          order = 2,
+          width = "half",
+          cmdHidden = true,
+          pattern = "^%d+$",
+          get = function(info) return tostring(enchantDB.batchSize) end,
+          set = function(info, value) enchantDB.batchSize = tonumber(value) end,
+        },
+        pick = {
+          type = "execute",
+          name = "Pick",
+          desc = "Pick out the most profitable scrolls",
+          order = 3,
+          width = "half",
+          func = function(info) TradeHelper:PickScroll(enchantDB.lowestProfit, enchantDB.batchSize) end,
+        },
         reagent = {
           type = "group",
           name = "Reagent Price",
-          order = 0,
+          order = 4,
           inline = true,
           args = {
             separator = {

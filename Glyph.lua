@@ -24,7 +24,7 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
       local productCount = GetTradeSkillNumMade(recipeIndex)
       local productPrice, _, _, _, infoString = AucAdvanced.API.GetBestMatch(product, "market")
       -- Filter out those can not match lowest price
-      if productPrice>0 and not infoString:find("Can not match") then
+      if productPrice and not infoString:find("Can not match") then
         local cost = 0
         for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
           local _, _, reagentCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
@@ -59,6 +59,8 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
   for _, v in ipairs(profitTable) do
     msg = msg.."\n"..v.Product..": "..self:FormatMoney(v.Profit).." x "..v.Number
     local recipeIndex = v.SkillId
+    local _, _, canMake = GetTradeSkillInfo(recipeIndex)
+    if canMake < v.Number then msg = msg.." ("..canMake..")" end
     for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
       local reagent = GetTradeSkillReagentItemLink(recipeIndex, reagentIndex)
       local reagentId = Enchantrix.Util.GetItemIdFromLink(reagent)
@@ -66,8 +68,6 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
         local _, _, count, playerCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
         inkNeed[reagentId] = (inkNeed[reagentId] or 0) + count * v.Number
         inkInStock[reagentId] = playerCount
-        local canMake = floor(playerCount / count)
-        if canMake < v.Number then msg = msg.." ("..canMake..")" end
       end
     end
   end

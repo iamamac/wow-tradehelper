@@ -54,6 +54,7 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, timeLeftThreshold, ri
           for _, v in ipairs(data) do
             local compet = AucAdvanced.API.UnpackImageItem(v)
             if compet.sellerName ~= playerName and		-- not mine
+               compet.buyoutPrice > 0 and				-- has buyout
                compet.buyoutPrice < buyoutPrice and		-- cheaper
                compet.timeLeft > timeLeftThreshold then	-- will stay long
               cancel = true

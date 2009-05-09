@@ -59,8 +59,6 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
   for _, v in ipairs(profitTable) do
     msg = msg.."\n"..v.Product..": "..self:FormatMoney(v.Profit).." x "..v.Number
     local recipeIndex = v.SkillId
-    local _, _, canMake = GetTradeSkillInfo(recipeIndex)
-    if canMake < v.Number then msg = msg.." ("..canMake..")" end
     for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
       local reagent = GetTradeSkillReagentItemLink(recipeIndex, reagentIndex)
       local reagentId = Enchantrix.Util.GetItemIdFromLink(reagent)
@@ -68,6 +66,8 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
         local _, _, count, playerCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
         inkNeed[reagentId] = (inkNeed[reagentId] or 0) + count * v.Number
         inkInStock[reagentId] = playerCount
+        local canMake = floor(playerCount / count)
+        if canMake < v.Number then msg = msg.." ("..canMake..")" end
       end
     end
   end

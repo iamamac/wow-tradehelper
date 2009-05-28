@@ -22,7 +22,6 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, timeLeftThreshold, ri
   end
   
   local playerName = UnitName("player")
-  local refresh = {}
   for i = 1, GetNumAuctionItems("owner") do
     local name, _, count, _, _, _, _, _, buyoutPrice, bidAmount = GetAuctionItemInfo("owner", i)
     if count > 0 and				-- not sold
@@ -64,18 +63,10 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, timeLeftThreshold, ri
           end
         end
         
-        if cancel and not dryRun then
-          CancelAuction(i)
-          refresh[name] = true
-        end
+        if cancel and not dryRun then CancelAuction(i) end
       end
     end
   end
-  
-  for name, _ in pairs(refresh) do
-    AucAdvanced.Scan.StartPushedScan(name, nil, nil, nil, 0, 0, nil, 1)
-  end
-  AucAdvanced.Scan.PopScan()
 end
 
 function TradeHelper:PostNoCompeteAuctions(namePattern, dryRun)

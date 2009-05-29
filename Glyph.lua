@@ -5,13 +5,16 @@ local parchmentPrice = {
   [39502] = 4000,	-- Resilient Parchment
 }
 
+TradeHelper.glyphPattern = '^Glyph of '
+
 function TradeHelper:PickGlyph(lowestProfit, batchSize)
   if lowestProfit == nil or batchSize == nil then return end
   
   -- Open the trade skill window
   CastSpellByName("Inscription")
   
-  local inkPrice = self.db.profile.glyph.inkPrice
+  local profile = self.db.profile.glyph
+  local inkPrice = profile.inkPrice
   local subClass
   local profitTable = {}
   for recipeIndex=1, GetNumTradeSkills() do
@@ -19,14 +22,14 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
     if type == "header" then
       subClass = name
     -- Filter out uninterested recipes
-    elseif name:find("^Glyph of") and subClass ~= "Death Knight" then
+    elseif name:find(self.glyphPattern) and subClass ~= "Death Knight" then
       local product = GetTradeSkillItemLink(recipeIndex)
+      local productId = Enchantrix.Util.GetItemIdFromLink(product)
       local productCount = GetTradeSkillNumMade(recipeIndex)
-      local productPrice, _, _, _, infoString = AucAdvanced.API.GetBestMatch(product, "market")
-      -- Filter out those can not match lowest price
-      if productPrice and not infoString:find("Can not match") then
+      
+      if profile.cost[productId] == nil then
         local cost = 0
-        for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
+        for reagentIndex = 1, GetTradeSkillNumReagents(recipeIndex) do
           local _, _, reagentCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
           local reagentId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, reagentIndex))
           local price = inkPrice[reagentId] or parchmentPrice[reagentId]
@@ -34,16 +37,21 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
           cost = cost + price * reagentCount
         end
         if cost then
-          local profit = productPrice * productCount * (1 - AucAdvanced.cutRate) - cost
-          local num = self.db.profile.glyph.batchSize - self:ItemCountInStock(name)
-          if profit >= lowestProfit and num > 0 then
-            tinsert(profitTable, {
-              SkillId = recipeIndex,
-              Product = product,
-              Profit = profit,
-              Number = num,
-            })
-          end
+          cost = math.ceil(cost / productCount)
+          profile.cost[productId] = cost
+        end
+      end
+      
+      local productPrice, profit = self:GetPrice(product, profile)
+      if productPrice > 0 then
+        local num = profile.batchSize - self:ItemCountInStock(name)
+        if num > 0 then
+          tinsert(profitTable, {
+            SkillId = recipeIndex,
+            Product = product,
+            Profit = profit,
+            Number = num,
+          })
         end
       end
     end
@@ -72,7 +80,7 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
     end
   end
   msg = msg.."\nMissing reagents:"
-  local inkReagent = self.db.profile.glyph.inkReagent
+  local inkReagent = profile.inkReagent
   for inkId, inkCount in pairs(inkNeed) do
     local inkShort = inkCount - inkInStock[inkId]
     if inkShort > 0 then

@@ -13,12 +13,22 @@ local defaults = {
       batchSize = 2,
       timeLeftThreshold = 1,
       risePercent = 0.5,
+      cost = {},
+      crazy = false,
+      overMarketPrice = 500000,
+      undercutPrice = 100,
+      bidMarkDown = 0.1,
+      postDuration = 1440,
     },
     enchant = {
       vellumPrice = {},
       marketPercent = 1,
       lowestProfit = 0,
       batchSize = 2,
+      cost = {},
+      crazy = false,
+      overMarketPrice = 0,
+      undercutPrice = 100,
     },
   },
 }
@@ -130,7 +140,7 @@ local options = {
           desc = "Cancel your auctions to adjust their price",
           order = 10,
           width = "half",
-          func = function(info) TradeHelper:CancelUndercuttedAuction("^Glyph of", glyphDB.timeLeftThreshold, glyphDB.risePercent) end,
+          func = function(info) TradeHelper:CancelUndercuttedAuction(TradeHelper.glyphPattern, glyphDB) end,
         },
         post = {
           type = "execute",
@@ -138,7 +148,7 @@ local options = {
           desc = "Post glyphs which there is no competition",
           order = 11,
           width = "half",
-          func = function(info) TradeHelper:PostNoCompeteAuctions("^Glyph of") end,
+          func = function(info) TradeHelper:PostNoCompeteAuctions(TradeHelper.glyphPattern, glyphDB) end,
         },
         reagent = {
           type = "group",
@@ -283,7 +293,7 @@ function TradeHelper:SetupOptions(init)
       cmdHidden = true,
       pattern = "^%d+$",
       get = function(info) return tostring(inkPrice[id]) end,
-      set = function(info, value) inkPrice[id] = tonumber(value) end,
+      set = function(info, value) inkPrice[id] = tonumber(value); wipe(glyphDB.cost) end,
     }
   end
 
@@ -296,7 +306,7 @@ function TradeHelper:SetupOptions(init)
       cmdHidden = true,
       pattern = "^%d+$",
       get = function(info) return tostring(vellumPrice[id]) end,
-      set = function(info, value) vellumPrice[id] = tonumber(value) end,
+      set = function(info, value) vellumPrice[id] = tonumber(value); wipe(enchantDB.cost) end,
     }
   end
   
@@ -321,4 +331,42 @@ function TradeHelper:ItemCountInStock(name)
   end
   
   return count
+end
+
+function TradeHelper:GetPrice(link, profile)
+  local buyPrice = AucAdvanced.API.GetMarketValue(link)
+  if buyPrice == nil then
+    self:Print(ChatFrame2, 'No market price available for '..link)
+    return 0
+  end
+  
+  local settingOverride = {
+    ['match.undercut.enable'] = true,
+    ['match.undermarket.undermarket'] = -100,
+    ['match.undermarket.overmarket'] = math.max(1, profile.overMarketPrice / buyPrice - 1) * 100,
+    ['match.undercut.usevalue'] = true,
+    ['match.undercut.value'] = profile.undercutPrice,
+  }
+  local AucAdvancedGetSettingOrig = AucAdvanced.Settings.GetSetting
+  AucAdvanced.Settings.GetSetting = function (setting, default)
+    if settingOverride[setting] ~= nil then return settingOverride[setting] end
+    return AucAdvancedGetSettingOrig(setting, default)
+  end
+  local matchArray = AucAdvanced.Modules.Match.Undercut.GetMatchArray(link, buyPrice)
+  AucAdvanced.Settings.GetSetting = AucAdvancedGetSettingOrig
+  
+  cost = profile.cost[Enchantrix.Util.GetItemIdFromLink(link)]
+  if cost == nil then
+    self:Print(ChatFrame2, 'No cost record for '..link..'. Please run PICK first!')
+    return 0
+  end
+  
+  local price = matchArray.value
+  local profit = price * (1 - AucAdvanced.cutRate) - cost
+  
+  -- Ignore if profit is low
+  -- In normal mode, also ignore if price under market
+  if profit < profile.lowestProfit or (not profile.crazy and matchArray.diff < 0) then price = 0 end
+  
+  return price, profit
 end

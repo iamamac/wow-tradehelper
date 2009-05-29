@@ -19,6 +19,8 @@ local slotType = {
   ["factor_item.ring"] = nil,	-- currently applies to the enchanter only, can"t sell
 }
 
+TradeHelper.scrollPattern = '^Scroll of Enchant '
+
 function TradeHelper:PickScroll()
   -- Open the trade skill window
   CastSpellByName("Enchanting")

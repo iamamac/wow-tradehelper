@@ -74,7 +74,7 @@ local options = {
           name = "Pick",
           desc = "Pick out the most profitable glyphs",
           order = 11,
-          func = function(info) TradeHelper:PickGlyph(glyphDB.lowestProfit, glyphDB.batchSize) end,
+          func = function(info) TradeHelper:PickGlyph() end,
         },
         profit = {
           type = "input",
@@ -270,22 +270,35 @@ local options = {
       args = {
         desc1 = {
           type = "description",
-          name = "Make Profitable Enchanting Scrolls",
+          name = "Update Auction Image",
           order = 0,
+          cmdHidden = true,
+        },
+        upd_scroll = {
+          type = "execute",
+          name = "Scroll",
+          desc = "Update scrolls' auction data image",
+          order = 1,
+          func = function(info) TradeHelper:UpdateAuctionEnchantingScroll() end,
+        },
+        desc2 = {
+          type = "description",
+          name = "Make Profitable Enchanting Scrolls",
+          order = 10,
           cmdHidden = true,
         },
         pick = {
           type = "execute",
           name = "Pick",
           desc = "Pick out the most profitable scrolls",
-          order = 1,
-          func = function(info) TradeHelper:PickScroll(enchantDB.lowestProfit, enchantDB.batchSize) end,
+          order = 11,
+          func = function(info) TradeHelper:PickScroll() end,
         },
         profit = {
           type = "input",
           name = "Lowest Profit",
           desc = "Scrolls under this profit will not be picked out",
-          order = 2,
+          order = 12,
           width = "half",
           cmdHidden = true,
           pattern = "^%d+$",
@@ -296,7 +309,7 @@ local options = {
           type = "range",
           name = "Batch Size",
           desc = "Scrolls with enough stock will not be picked out",
-          order = 3,
+          order = 13,
           width = "half",
           cmdHidden = true,
           min = 1,
@@ -305,7 +318,7 @@ local options = {
           get = function(info) return enchantDB.batchSize end,
           set = function(info, value) enchantDB.batchSize = value end,
         },
-        desc2 = {
+        desc3 = {
           type = "description",
           name = "Redistribute Auctions",
           order = 20,

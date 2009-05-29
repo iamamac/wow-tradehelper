@@ -15,6 +15,12 @@ function TradeHelper:UpdateAuctionInscriptionReagent()
   AucAdvanced.Scan.StartPushedScan("Ink", nil, nil, nil, 6, 9, nil, 1)
 end
 
+function TradeHelper:UpdateAuctionEnchantingScroll()
+  AucAdvanced.Scan.PushScan()
+  -- Glyph (under Glyph)
+  AucAdvanced.Scan.StartScan(nil, nil, nil, nil, 4, 6, nil, 1)
+end
+
 function TradeHelper:CancelUndercuttedAuction(namePattern, profile, dryRun)
   if not (AuctionFrame and AuctionFrame:IsVisible()) then
     message("You need to talk to the auctioneer first!")

@@ -7,9 +7,7 @@ local parchmentPrice = {
 
 TradeHelper.glyphPattern = '^Glyph of '
 
-function TradeHelper:PickGlyph(lowestProfit, batchSize)
-  if lowestProfit == nil or batchSize == nil then return end
-  
+function TradeHelper:PickGlyph()
   -- Open the trade skill window
   CastSpellByName("Inscription")
   

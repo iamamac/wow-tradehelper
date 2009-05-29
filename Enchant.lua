@@ -19,13 +19,12 @@ local slotType = {
   ["factor_item.ring"] = nil,	-- currently applies to the enchanter only, can"t sell
 }
 
-function TradeHelper:PickScroll(lowestProfit, batchSize)
-  if lowestProfit == nil or batchSize == nil then return end
-  
+function TradeHelper:PickScroll()
   -- Open the trade skill window
   CastSpellByName("Enchanting")
   
-  local vellumPrice = self.db.profile.enchant.vellumPrice
+  local profile = self.db.profile.enchant
+  local vellumPrice = profile.vellumPrice
   local subClass
   local profitTable = {}
   for recipeIndex=1, GetNumTradeSkills() do
@@ -34,25 +33,32 @@ function TradeHelper:PickScroll(lowestProfit, batchSize)
       subClass = name
     -- Filter out uninterested recipes
     elseif subClass == "Enchant" then
+      local enchantType = slotType[EnchantrixBarker_GetItemCategoryKey(recipeIndex)]
       local scrollName = "Scroll of "..name
       local scroll = Enchantrix.Util.GetLinkFromName(scrollName)
-      local scrollPrice, _, _, _, infoString = AucAdvanced.API.GetBestMatch(scroll, "market")
-      -- Filter out those can not match lowest price
-      if scrollPrice and not infoString:find("Can not match") then
-        local enchantType = slotType[EnchantrixBarker_GetItemCategoryKey(recipeIndex)]
-        local level = GetTradeSkillDescription(recipeIndex):match("Requires a level (%d+) or higher item") or "0"
-        local cost = vellumPrice[vellumUsage[enchantType..level]]
-        for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
-          local _, _, reagentCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
-          local reagent = GetTradeSkillReagentItemLink(recipeIndex, reagentIndex)
-          local price = Enchantrix_GetReagentHSP(reagent)
-          if price == 0 then cost = nil; break end
-          cost = cost + price * reagentCount
+      if enchantType and scroll then
+        -- Always update cost information
+        if true then
+          local level = GetTradeSkillDescription(recipeIndex):match("Requires a level (%d+) or higher item") or "0"
+          local cost = vellumPrice[vellumUsage[enchantType..level]]
+          for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
+            local _, _, reagentCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
+            local reagent = GetTradeSkillReagentItemLink(recipeIndex, reagentIndex)
+            local price = Enchantrix_GetReagentHSP(reagent)
+            if price == 0 then cost = nil; break end
+            cost = cost + price * reagentCount
+          end
+          if cost then
+            local scrollId = Enchantrix.Util.GetItemIdFromLink(scroll)
+            profile.cost[scrollId] = cost
+          end
         end
-        if cost then
-          local profit = scrollPrice * (1 - AucAdvanced.cutRate) - cost
-          local num = self.db.profile.enchant.batchSize - self:ItemCountInStock(scrollName)
-          if profit >= lowestProfit and num > 0 then
+        
+        local scrollPrice, profit = self:GetPrice(scroll, profile)
+        self:Print(scroll,scrollPrice,profit)
+        if scrollPrice > 0 then
+          local num = profile.batchSize - self:ItemCountInStock(scrollName)
+          if num > 0 then
             tinsert(profitTable, {
               SkillId = recipeIndex,
               Scroll = scroll,
@@ -93,7 +99,7 @@ function TradeHelper:PickScroll(lowestProfit, batchSize)
       msg = msg.."\n"..reagent.." x "..reagentShort
     end
   end
-  self:Print(ChatFrame2, msg)
+  self:Print(msg)
 end
 
 function TradeHelper:GetVellumPrice(marketPercent)

@@ -90,7 +90,7 @@ function TradeHelper:PickGlyph(lowestProfit, batchSize)
       msg = msg.."\n"..ink.." x "..inkShort.." / "..pigment.." level herb x "..herbShort
     end
   end
-  self:Print(ChatFrame2, msg)
+  self:Print(msg)
 end
 
 function TradeHelper:GetInkInfo(marketPercent)

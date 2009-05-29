@@ -38,11 +38,11 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, profile, dryRun)
         if timeLeft <= profile.timeLeftThreshold then
           cancel = true
           numShortTime = numShortTime + 1
-          self:Print(ChatFrame2, "Cancel "..link.." because of short time left")
+          self:Print("Cancel "..link.." because of short time left")
         elseif undercutPrice / buyoutPrice > 1 + profile.risePercent then
           cancel = true
           numRising = numRising + 1
-          self:Print(ChatFrame2, "Cancel "..link.." because of rising price: "..self:FormatMoney(buyoutPrice).." to "..self:FormatMoney(undercutPrice))
+          self:Print("Cancel "..link.." because of rising price: "..self:FormatMoney(buyoutPrice).." to "..self:FormatMoney(undercutPrice))
         else
           local _, itemId, property, factor = AucAdvanced.DecodeLink(link)
           local data = AucAdvanced.API.QueryImage({
@@ -61,7 +61,7 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, profile, dryRun)
                compet.timeLeft > profile.timeLeftThreshold then	-- will stay long
               cancel = true
               numCompete = numCompete + 1
-              self:Print(ChatFrame2, "Cancel "..link.." because of competition: "..self:FormatMoney(buyoutPrice).."(mine) vs "..self:FormatMoney(compet.buyoutPrice).."("..compet.sellerName..")")
+              self:Print("Cancel "..link.." because of competition: "..self:FormatMoney(buyoutPrice).."(mine) vs "..self:FormatMoney(compet.buyoutPrice).."("..compet.sellerName..")")
               break
             end
           end
@@ -78,12 +78,12 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, profile, dryRun)
     end
   end
   
-  self:Print(ChatFrame2, numAuction..' items in total, '..numLowest..' has lowest price, '..numCantUndercut..' can not undercut')
-  msg = (numShortTime + numRising + numCompete)..' items canceled'
-  if numShortTime > 0 then msg = msg..', '..numShortTime..' because of short time' end
-  if numRising > 0 then msg = msg..', '..numRising..' because of rising price' end
-  if numCompete > 0 then msg = msg..', '..numCompete..' because of competition' end
-  self:Print(ChatFrame2, msg)
+  self:Print('{{'..numAuction..'}} items in total, {{'..numLowest..'}} has lowest price, {{'..numCantUndercut..'}} can not undercut')
+  msg = '{{'..(numShortTime + numRising + numCompete)..'}} items canceled'
+  if numShortTime > 0 then msg = msg..', {{'..numShortTime..'}} because of short time' end
+  if numRising > 0 then msg = msg..', {{'..numRising..'}} because of rising price' end
+  if numCompete > 0 then msg = msg..', {{'..numCompete..'}} because of competition' end
+  self:Print(msg)
 end
 
 function TradeHelper:PostNoCompeteAuctions(namePattern, profile, dryRun)

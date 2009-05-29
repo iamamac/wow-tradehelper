@@ -283,6 +283,10 @@ function TradeHelper:FormatMoney(value)
   return abacus:FormatMoneyFull(value, true)
 end
 
+function TradeHelper:Print(...)
+  AucAdvanced.Print(...)
+end
+
 function TradeHelper:SetupOptions(init)
   local inkPrice = glyphDB.inkPrice
   for id in pairs(inkPrice) do
@@ -336,7 +340,7 @@ end
 function TradeHelper:GetPrice(link, profile)
   local buyPrice = AucAdvanced.API.GetMarketValue(link)
   if buyPrice == nil then
-    self:Print(ChatFrame2, 'No market price available for '..link)
+    self:Print('No market price available for '..link)
     return 0
   end
   
@@ -357,7 +361,7 @@ function TradeHelper:GetPrice(link, profile)
   
   cost = profile.cost[Enchantrix.Util.GetItemIdFromLink(link)]
   if cost == nil then
-    self:Print(ChatFrame2, 'No cost record for '..link..'. Please run PICK first!')
+    self:Print('No cost record for '..link..'. Please run PICK first!')
     return 0
   end
   

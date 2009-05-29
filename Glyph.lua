@@ -44,11 +44,21 @@ function TradeHelper:PickGlyph()
       if productPrice > 0 then
         local num = profile.batchSize - self:ItemCountInStock(name)
         if num > 0 then
+          local reagentId, count
+          for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
+            local reagent = GetTradeSkillReagentItemLink(recipeIndex, reagentIndex)
+            reagentId = Enchantrix.Util.GetItemIdFromLink(reagent)
+            if inkPrice[reagentId] then
+              _, _, count = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
+              break
+            end
+          end
           tinsert(profitTable, {
-            SkillId = recipeIndex,
             Product = product,
             Profit = profit,
             Number = num,
+            InkId = reagentId,
+            InkNeed = count,
           })
         end
       end
@@ -56,26 +66,23 @@ function TradeHelper:PickGlyph()
   end
   
   sort(profitTable, function (a,b)
-    return a.Profit > b.Profit
+    if profile.sortPerInk then
+      return a.Profit / a.InkNeed > b.Profit / b.InkNeed
+    else
+      return a.Profit > b.Profit
+    end
   end)
   
   local inkNeed = {}
   local inkInStock = {}
   local msg = ""
   for _, v in ipairs(profitTable) do
-    msg = msg.."\n"..v.Product..": "..self:FormatMoney(v.Profit).." x "..v.Number
-    local recipeIndex = v.SkillId
-    for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
-      local reagent = GetTradeSkillReagentItemLink(recipeIndex, reagentIndex)
-      local reagentId = Enchantrix.Util.GetItemIdFromLink(reagent)
-      if inkPrice[reagentId] then
-        local _, _, count, playerCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
-        inkNeed[reagentId] = (inkNeed[reagentId] or 0) + count * v.Number
-        inkInStock[reagentId] = playerCount
-        local canMake = floor(playerCount / count)
-        if canMake < v.Number then msg = msg.." ("..canMake..")" end
-      end
-    end
+    inkNameShort = GetItemInfo(v.InkId):sub(1,1)
+    msg = msg.."\n"..v.Product.." "..v.InkNeed..inkNameShort..": "..self:FormatMoney(v.Profit).." x "..v.Number
+    inkNeed[v.InkId] = (inkNeed[v.InkId] or 0) + v.InkNeed * v.Number
+    if inkInStock[v.InkId] == nil then inkInStock[v.InkId] = GetItemCount(v.InkId, true) end
+    local canMake = floor(inkInStock[v.InkId] / v.InkNeed)
+    if canMake < v.Number then msg = msg.." ("..canMake..")" end
   end
   msg = msg.."\nMissing reagents:"
   local inkReagent = profile.inkReagent

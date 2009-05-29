@@ -11,6 +11,7 @@ local defaults = {
       cost = {},
       marketPercent = 1.0,
       lowestProfit = 0,
+      sortPerInk = true,
       crazy = false,
       undercutPrice = 100,
       overMarketPrice = 0,
@@ -90,6 +91,15 @@ local options = {
           pattern = "^%d+$",
           get = function(info) return tostring(glyphDB.lowestProfit) end,
           set = function(info, value) glyphDB.lowestProfit = tonumber(value) end,
+        },
+        per = {
+          type = "toggle",
+          name = "Per Ink",
+          desc = "Sort the result list by profit per ink",
+          order = 13,
+          cmdHidden = true,
+          get = function(info) return glyphDB.sortPerInk end,
+          set = function(info, value) glyphDB.sortPerInk = value end,
         },
         desc3 = {
           type = "description",

@@ -21,12 +21,14 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, profile, dryRun)
     return
   end
   
+  local numAuction, numLowest, numCantUndercut, numShortTime, numRising, numCompete = 0, 0, 0, 0, 0, 0
   local playerName = UnitName("player")
   for i = 1, GetNumAuctionItems("owner") do
     local name, _, count, _, _, _, _, _, buyoutPrice, bidAmount = GetAuctionItemInfo("owner", i)
     if count > 0 and				-- not sold
        bidAmount == 0 and			-- no one bid
        name:find(namePattern) then	-- specified name
+      numAuction = numAuction + 1
       local link = GetAuctionItemLink("owner", i)
       local undercutPrice = self:GetPrice(link, profile)
       if undercutPrice > 0 then
@@ -35,9 +37,11 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, profile, dryRun)
         local timeLeft = GetAuctionItemTimeLeft("owner", i)
         if timeLeft <= profile.timeLeftThreshold then
           cancel = true
+          numShortTime = numShortTime + 1
           self:Print(ChatFrame2, "Cancel "..link.." because of short time left")
         elseif undercutPrice / buyoutPrice > 1 + profile.risePercent then
           cancel = true
+          numRising = numRising + 1
           self:Print(ChatFrame2, "Cancel "..link.." because of rising price: "..self:FormatMoney(buyoutPrice).." to "..self:FormatMoney(undercutPrice))
         else
           local _, itemId, property, factor = AucAdvanced.DecodeLink(link)
@@ -56,16 +60,30 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, profile, dryRun)
                compet.buyoutPrice < buyoutPrice and				-- cheaper
                compet.timeLeft > profile.timeLeftThreshold then	-- will stay long
               cancel = true
+              numCompete = numCompete + 1
               self:Print(ChatFrame2, "Cancel "..link.." because of competition: "..self:FormatMoney(buyoutPrice).."(mine) vs "..self:FormatMoney(compet.buyoutPrice).."("..compet.sellerName..")")
               break
             end
           end
         end
         
-        if cancel and not dryRun then CancelAuction(i) end
+        if cancel then
+          if not dryRun then CancelAuction(i) end
+        else
+          numLowest = numLowest + 1
+        end
+      else
+        numCantUndercut = numCantUndercut + 1
       end
     end
   end
+  
+  self:Print(ChatFrame2, numAuction..' items in total, '..numLowest..' has lowest price, '..numCantUndercut..' can not undercut')
+  msg = (numShortTime + numRising + numCompete)..' items canceled'
+  if numShortTime > 0 then msg = msg..', '..numShortTime..' because of short time' end
+  if numRising > 0 then msg = msg..', '..numRising..' because of rising price' end
+  if numCompete > 0 then msg = msg..', '..numCompete..' because of competition' end
+  self:Print(ChatFrame2, msg)
 end
 
 function TradeHelper:PostNoCompeteAuctions(namePattern, profile, dryRun)

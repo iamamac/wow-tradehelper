@@ -38,46 +38,44 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, profile, dryRun)
       local link = GetAuctionItemLink("owner", i)
       local undercutPrice = self:GetPrice(link, profile)
       if undercutPrice > 0 then
-        local cancel = false
+        local cancel = true
         
         local timeLeft = GetAuctionItemTimeLeft("owner", i)
+        local lowestCompetePrice = undercutPrice + profile.undercutPrice
         if timeLeft <= profile.timeLeftThreshold then
-          cancel = true
           numShortTime = numShortTime + 1
           self:Print("Cancel "..link.." because of short time left")
         elseif undercutPrice / buyoutPrice > 1 + profile.risePercent then
-          cancel = true
           numRising = numRising + 1
           self:Print("Cancel "..link.." because of rising price: "..self:FormatMoney(buyoutPrice).." to "..self:FormatMoney(undercutPrice))
+        elseif lowestCompetePrice > buyoutPrice then
+          cancel = false
+          numLowest = numLowest + 1
         else
           local _, itemId, property, factor = AucAdvanced.DecodeLink(link)
           local data = AucAdvanced.API.QueryImage({
             itemId = itemId,
             suffix = property,
             factor = factor,
-            minStack = count,
-            maxStack = count,
-            maxBuyout = buyoutPrice,
+            maxStack = 1,
+            minBuyout = 1,                                                      -- has buyout
+            maxBuyout = lowestCompetePrice,                                     -- cheaper
+            filter = function (data)
+              return data[AucAdvanced.Const.SELLER] == playerName or            -- not mine
+                     data[AucAdvanced.Const.TLEFT] <= profile.timeLeftThreshold -- will stay long
+            end,
           })
-          for _, v in ipairs(data) do
-            local compet = AucAdvanced.API.UnpackImageItem(v)
-            if compet.sellerName ~= playerName and				-- not mine
-               compet.buyoutPrice > 0 and						-- has buyout
-               compet.buyoutPrice < buyoutPrice and				-- cheaper
-               compet.timeLeft > profile.timeLeftThreshold then	-- will stay long
-              cancel = true
-              numCompete = numCompete + 1
-              self:Print("Cancel "..link.." because of competition: "..self:FormatMoney(buyoutPrice).."(mine) vs "..self:FormatMoney(compet.buyoutPrice).."("..compet.sellerName..")")
-              break
-            end
+          if #data > 0 then
+            numCompete = numCompete + 1
+            local compet = AucAdvanced.API.UnpackImageItem(data[1])
+            self:Print("Cancel "..link.." because of competition: "..self:FormatMoney(buyoutPrice).."(mine) vs "..self:FormatMoney(compet.buyoutPrice).."("..compet.sellerName..")")
+          else
+            cancel = false
+            numLowest = numLowest + 1
           end
         end
         
-        if cancel then
-          if not dryRun then CancelAuction(i) end
-        else
-          numLowest = numLowest + 1
-        end
+        if cancel and not dryRun then CancelAuction(i) end
       else
         numCantUndercut = numCantUndercut + 1
       end

@@ -478,8 +478,20 @@ function TradeHelper:GetPrice(link, profile)
     if settingOverride[setting] ~= nil then return settingOverride[setting] end
     return AucAdvancedGetSettingOrig(setting, default)
   end
+  
+  local AucAdvancedQueryImageOrig = AucAdvanced.API.QueryImage
+  AucAdvanced.API.QueryImage = function (query, faction, realm, ...)
+    query.maxStack = 1
+    query.filter = function (data)
+      return data[AucAdvanced.Const.TLEFT] <= profile.timeLeftThreshold
+    end
+    return AucAdvancedQueryImageOrig(query, faction, realm, ...)
+  end
+  
   local matchArray = AucAdvanced.Modules.Match.Undercut.GetMatchArray(link, buyPrice)
+  
   AucAdvanced.Settings.GetSetting = AucAdvancedGetSettingOrig
+  AucAdvanced.API.QueryImage = AucAdvancedQueryImageOrig
   
   cost = profile.cost[Enchantrix.Util.GetItemIdFromLink(link)]
   if cost == nil then

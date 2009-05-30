@@ -14,7 +14,8 @@ local defaults = {
       sortPerInk = true,
       crazy = false,
       undercutPrice = 100,
-      overMarketPrice = 0,
+      overMarketStart = 0,
+      overMarketPercent = 1.0,
       timeLeftThreshold = 1,
       risePercent = 0.5,
       bidMarkDown = 0.1,
@@ -28,7 +29,8 @@ local defaults = {
       lowestProfit = 0,
       crazy = false,
       undercutPrice = 100,
-      overMarketPrice = 0,
+      overMarketStart = 0,
+      overMarketPercent = 1.0,
       timeLeftThreshold = 1,
       risePercent = 0.05,
       bidMarkDown = 0.1,
@@ -127,16 +129,30 @@ local options = {
           get = function(info) return tostring(glyphDB.undercutPrice) end,
           set = function(info, value) glyphDB.undercutPrice = tonumber(value) end,
         },
-        overmarket = {
+        omstart = {
           type = "input",
-          name = "Over Market",
-          desc = "Post above this price if there is no competition",
+          name = "OMStart",
+          desc = "Use the following value to start undercutting if no fixed price: max[OMStart, market_price * (1 + OMPercent)]",
           order = 23,
           width = "half",
           cmdHidden = true,
           pattern = "^%d+$",
-          get = function(info) return tostring(glyphDB.overMarketPrice) end,
-          set = function(info, value) glyphDB.overMarketPrice = tonumber(value) end,
+          get = function(info) return tostring(glyphDB.overMarketStart) end,
+          set = function(info, value) glyphDB.overMarketStart = tonumber(value) end,
+        },
+        ompercent = {
+          type = "range",
+          name = "OMPercent",
+          desc = "Use the following value to start undercutting if no fixed price: max[OMStart, market_price * (1 + OMPercent)]",
+          order = 24,
+          width = "half",
+          cmdHidden = true,
+          min = 0,
+          max = 3,
+          step = 0.1,
+          isPercent = true,
+          get = function(info) return glyphDB.overMarketPercent end,
+          set = function(info, value) glyphDB.overMarketPercent = value end,
         },
         desc4 = {
           type = "description",
@@ -345,16 +361,30 @@ local options = {
           get = function(info) return tostring(enchantDB.undercutPrice) end,
           set = function(info, value) enchantDB.undercutPrice = tonumber(value) end,
         },
-        overmarket = {
+        omstart = {
           type = "input",
-          name = "Over Market",
-          desc = "Post above this price if there is no competition",
+          name = "OMStart",
+          desc = "Use the following value to start undercutting if no fixed price: max[OMStart, market_price * (1 + OMPercent)]",
           order = 23,
           width = "half",
           cmdHidden = true,
           pattern = "^%d+$",
-          get = function(info) return tostring(enchantDB.overMarketPrice) end,
-          set = function(info, value) enchantDB.overMarketPrice = tonumber(value) end,
+          get = function(info) return tostring(enchantDB.overMarketStart) end,
+          set = function(info, value) enchantDB.overMarketStart = tonumber(value) end,
+        },
+        ompercent = {
+          type = "range",
+          name = "OMPercent",
+          desc = "Use the following value to start undercutting if no fixed price: max[OMStart, market_price * (1 + OMPercent)]",
+          order = 24,
+          width = "half",
+          cmdHidden = true,
+          min = 0,
+          max = 3,
+          step = 0.1,
+          isPercent = true,
+          get = function(info) return enchantDB.overMarketPercent end,
+          set = function(info, value) enchantDB.overMarketPercent = value end,
         },
         desc4 = {
           type = "description",
@@ -558,16 +588,24 @@ function TradeHelper:ItemCountInStock(name)
 end
 
 function TradeHelper:GetPrice(link, profile)
-  local buyPrice = AucAdvanced.API.GetMarketValue(link)
-  if buyPrice == nil then
+  local marketPrice = AucAdvanced.API.GetMarketValue(link)
+  if marketPrice == nil then
     self:Print('No market price available for '..link)
     return 0
   end
   
+  local overMarket
+  local sig = AucAdvanced.API.GetSigFromLink(link)
+  if AucAdvanced.Settings.GetSetting("util.appraiser.item."..sig..".model") == 'fixed' then
+    overMarket = AucAdvanced.Settings.GetSetting("util.appraiser.item."..sig..".fixed.buy")
+    self:Print('Use fixed price ('..self:FormatMoney(overMarket)..') for '..link)
+  else
+    overMarket = math.max(profile.overMarketStart, marketPrice * (1 + profile.overMarketPercent))
+  end
   local settingOverride = {
     ['match.undercut.enable'] = true,
     ['match.undermarket.undermarket'] = -100,
-    ['match.undermarket.overmarket'] = math.max(1, profile.overMarketPrice / buyPrice - 1) * 100,
+    ['match.undermarket.overmarket'] = (overMarket / marketPrice - 1) * 100,
     ['match.undercut.usevalue'] = true,
     ['match.undercut.value'] = profile.undercutPrice,
   }
@@ -586,7 +624,7 @@ function TradeHelper:GetPrice(link, profile)
     return AucAdvancedQueryImageOrig(query, faction, realm, ...)
   end
   
-  local matchArray = AucAdvanced.Modules.Match.Undercut.GetMatchArray(link, buyPrice)
+  local matchArray = AucAdvanced.Modules.Match.Undercut.GetMatchArray(link, marketPrice)
   
   AucAdvanced.Settings.GetSetting = AucAdvancedGetSettingOrig
   AucAdvanced.API.QueryImage = AucAdvancedQueryImageOrig

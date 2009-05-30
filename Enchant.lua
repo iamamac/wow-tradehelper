@@ -57,7 +57,6 @@ function TradeHelper:PickScroll()
         end
         
         local scrollPrice, profit = self:GetPrice(scroll, profile)
-        self:Print(scroll,scrollPrice,profit)
         if scrollPrice > 0 then
           local num = profile.batchSize - self:ItemCountInStock(scrollName)
           if num > 0 then

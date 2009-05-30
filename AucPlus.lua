@@ -36,7 +36,7 @@ function TradeHelper:CancelUndercuttedAuction(namePattern, profile, dryRun)
        name:find(namePattern) then	-- specified name
       numAuction = numAuction + 1
       local link = GetAuctionItemLink("owner", i)
-      local undercutPrice = self:GetPrice(link, profile)
+      local undercutPrice = self:GetPrice(link, profile, buyoutPrice)
       if undercutPrice > 0 then
         local cancel = true
         

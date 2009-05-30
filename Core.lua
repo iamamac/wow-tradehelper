@@ -587,7 +587,7 @@ function TradeHelper:ItemCountInStock(name)
   return count
 end
 
-function TradeHelper:GetPrice(link, profile)
+function TradeHelper:GetPrice(link, profile, undercutStart)
   local marketPrice = AucAdvanced.API.GetMarketValue(link)
   if marketPrice == nil then
     self:Print('No market price available for '..link)
@@ -598,10 +598,11 @@ function TradeHelper:GetPrice(link, profile)
   local sig = AucAdvanced.API.GetSigFromLink(link)
   if AucAdvanced.Settings.GetSetting("util.appraiser.item."..sig..".model") == 'fixed' then
     overMarket = AucAdvanced.Settings.GetSetting("util.appraiser.item."..sig..".fixed.buy")
-    self:Print('Use fixed price ('..self:FormatMoney(overMarket)..') for '..link)
+    self:Print('Use fixed price ('..self:FormatMoney(overMarket)..', {{'..math.floor((overMarket / marketPrice - 1) * 100 + 0.5)..'%}} up) for '..link)
   else
     overMarket = math.max(profile.overMarketStart, marketPrice * (1 + profile.overMarketPercent))
   end
+  if undercutStart then overMarket = math.max(overMarket, undercutStart) end
   local settingOverride = {
     ['match.undercut.enable'] = true,
     ['match.undermarket.undermarket'] = -100,

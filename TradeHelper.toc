@@ -1,7 +1,7 @@
 ## Title: TradeHelper
 ## Notes: Help you picking the highest profit tradeskill items to make
 ##
-## Interface: 30000
+## Interface: 30100
 ## Dependencies: Auc-Advanced, Enchantrix, Enchantrix-Barker
 ## SavedVariables: TradeHelperDB
 ##

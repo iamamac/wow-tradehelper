@@ -178,6 +178,7 @@ function TradeHelper:GetSelfMadeVellumPrice()
   for recipeIndex=1, GetNumTradeSkills() do
     local name = GetTradeSkillInfo(recipeIndex)
     if name:find("Vellum") then
+      local vellumCount = GetTradeSkillNumMade(recipeIndex)
       local cost = 0
       for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
         local _, _, reagentCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
@@ -188,7 +189,7 @@ function TradeHelper:GetSelfMadeVellumPrice()
       end
       if cost then
         local vellumId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillItemLink(recipeIndex))
-        vellumPrice[vellumId] = cost
+        vellumPrice[vellumId] = math.ceil(cost / vellumCount)
       end
     end
   end

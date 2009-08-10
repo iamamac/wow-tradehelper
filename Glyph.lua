@@ -42,7 +42,7 @@ function TradeHelper:PickGlyph()
       
       local productPrice, profit = self:GetPrice(product, profile)
       if productPrice > 0 then
-        local num = profile.batchSize - self:ItemCountInStock(name)
+        local num = profile.batchSize - self:ItemCountInStock(product)
         if num > 0 then
           local reagentId, count
           for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do

@@ -572,11 +572,12 @@ function TradeHelper:SetupOptions(init)
   end
 end
 
-function TradeHelper:ItemCountInStock(name)
+function TradeHelper:ItemCountInStock(item)
   -- Inventory (including bank)
-  local count = GetItemCount(name, true)
+  local count = GetItemCount(item, true)
   
   -- Auction
+  local name = GetItemInfo(item)
   local own = AucAdvanced.Modules.Util.Appraiser.ownResults
   if own and own[name] then
     for _, res in pairs(own[name]) do

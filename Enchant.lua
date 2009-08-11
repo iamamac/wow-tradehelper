@@ -58,7 +58,7 @@ function TradeHelper:PickScroll()
         
         local scrollPrice, profit = self:GetPrice(scroll, profile)
         if scrollPrice > 0 then
-          local num = profile.batchSize - self:ItemCountInStock(scrollName)
+          local num = profile.batchSize - self:ItemCountInStock(scroll)
           if num > 0 then
             tinsert(profitTable, {
               SkillId = recipeIndex,

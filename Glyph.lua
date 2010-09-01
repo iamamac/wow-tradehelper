@@ -20,7 +20,7 @@ function TradeHelper:PickGlyph()
     if type == "header" then
       subClass = name
     -- Filter out uninterested recipes
-    elseif name:find(self.glyphPattern) and subClass ~= "Death Knight" then
+    elseif name:find(self.glyphPattern) then
       local product = GetTradeSkillItemLink(recipeIndex)
       local productId = Enchantrix.Util.GetItemIdFromLink(product)
       local productCount = GetTradeSkillNumMade(recipeIndex)

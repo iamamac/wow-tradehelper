@@ -5,6 +5,20 @@ local parchmentPrice = {
   [39502] = 4000,	-- Resilient Parchment
 }
 
+local inkExchange = {
+  [43126] = {       -- Ink of the Sea exchange in Dalaran
+     [43127] = 10,  -- Snowfall Ink
+     [43120] = 1,   -- Celestial Ink
+     [43124] = 1,   -- Ethereal Ink
+     [37101] = 1,   -- Ivory Ink
+     [43118] = 1,   -- Jadefire Ink
+     [43116] = 1,   -- Lion's Ink
+     [39774] = 1,   -- Midnight Ink
+     [39469] = 1,   -- Moonglow Ink
+     [43122] = 1,   -- Shimmering Ink
+  },
+}
+
 TradeHelper.glyphPattern = '^Glyph of '
 
 function TradeHelper:PickGlyph()
@@ -86,6 +100,13 @@ function TradeHelper:PickGlyph()
   end
   msg = msg.."\nMissing reagents:"
   local inkReagent = profile.inkReagent
+  for toId, _ in pairs(inkNeed) do
+    local fromId = inkReagent[toId].exchange
+    if fromId ~= nil then
+      inkNeed[fromId] = (inkNeed[fromId] or 0) + inkNeed[toId] * inkExchange[fromId][toId]
+      inkNeed[toId] = 0
+    end
+  end
   for inkId, inkCount in pairs(inkNeed) do
     local inkShort = inkCount - inkInStock[inkId]
     if inkShort > 0 then
@@ -133,6 +154,20 @@ function TradeHelper:GetInkInfo(marketPercent)
     end
   end
   CloseTradeSkill()
+
+  -- Ink exchange
+  for fromId, list in pairs(inkExchange) do
+    for toId, cost in pairs(list) do
+      if inkPrice[toId] > inkPrice[fromId] * cost then
+        inkPrice[toId] = inkPrice[fromId] * cost
+        inkReagent[toId].exchange = fromId
+
+        local _, fromLink = GetItemInfo(fromId)
+        local _, toLink = GetItemInfo(toId)
+        self:Print("Exchange "..fromLink.." for "..toLink.." is cheaper")
+      end
+    end
+  end
 end
 
 function TradeHelper:BuildGlyphSnatchList()

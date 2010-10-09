@@ -3,10 +3,11 @@
 ##
 ## Interface: 30200
 ## Dependencies: Auc-Advanced, Enchantrix, Enchantrix-Barker
+## OptionalDeps: Ace3, LibAbacus-3.0
 ## SavedVariables: TradeHelperDB
 ##
 ## Author: Iamamac
-## Version: 0.3
+## Version: 0.4dev
 ##
 Core.lua
 Glyph.lua

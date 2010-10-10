@@ -323,7 +323,7 @@ function EnchantHelper:PickScroll()
             cost = cost + price * reagentCount
           end
           if cost then
-            local scrollId = Enchantrix.Util.GetItemIdFromLink(scroll)
+            local scrollId = TradeHelper:GetItemIdFromLink(scroll)
             TradeHelper.cost[scrollId] = cost
           end
         end
@@ -358,7 +358,7 @@ function EnchantHelper:PickScroll()
     if canMake < v.Number then msg = msg.." ("..canMake..")" end
     for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
       local reagent = GetTradeSkillReagentItemLink(recipeIndex, reagentIndex)
-      local reagentId = Enchantrix.Util.GetItemIdFromLink(reagent)
+      local reagentId = TradeHelper:GetItemIdFromLink(reagent)
       local _, _, count, playerCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
       reagentNeed[reagentId] = (reagentNeed[reagentId] or 0) + count * v.Number
       reagentInStock[reagentId] = playerCount

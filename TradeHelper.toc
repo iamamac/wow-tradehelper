@@ -2,8 +2,8 @@
 ## Notes: Help you picking the highest profit tradeskill items to make
 ##
 ## Interface: 30200
-## Dependencies: Auc-Advanced, Enchantrix, Enchantrix-Barker
-## OptionalDeps: Ace3, LibAbacus-3.0
+## Dependencies: Auc-Advanced
+## OptionalDeps: Enchantrix, Enchantrix-Barker, Ace3, LibAbacus-3.0
 ## SavedVariables: TradeHelperDB
 ##
 ## Author: Iamamac

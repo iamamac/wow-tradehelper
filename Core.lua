@@ -32,6 +32,10 @@ function TradeHelper:Print(...)
   AucAdvanced.Print(...)
 end
 
+function TradeHelper:GetItemIdFromLink(link)
+  return select(2, AucAdvanced.DecodeLink(link))
+end
+
 function TradeHelper:ItemCountInStock(item)
   -- Inventory (including bank)
   local count = GetItemCount(item, true)
@@ -91,7 +95,7 @@ function TradeHelper:GetPrice(link, profile, undercutStart)
   AucAdvanced.Settings.GetSetting = AucAdvancedGetSettingOrig
   AucAdvanced.API.QueryImage = AucAdvancedQueryImageOrig
 
-  local cost = self.cost[Enchantrix.Util.GetItemIdFromLink(link)]
+  local cost = self.cost[self:GetItemIdFromLink(link)]
   if cost == nil then
     self:Print('No cost record for '..link..'. Please run PICK first!')
     return 0

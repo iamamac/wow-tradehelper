@@ -335,14 +335,14 @@ function ScribeHelper:PickGlyph()
     -- Filter out uninterested recipes
     elseif name:find(self.glyphPattern) then
       local product = GetTradeSkillItemLink(recipeIndex)
-      local productId = Enchantrix.Util.GetItemIdFromLink(product)
+      local productId = TradeHelper:GetItemIdFromLink(product)
       local productCount = GetTradeSkillNumMade(recipeIndex)
 
       if TradeHelper.cost[productId] == nil then
         local cost = 0
         for reagentIndex = 1, GetTradeSkillNumReagents(recipeIndex) do
           local _, _, reagentCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
-          local reagentId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, reagentIndex))
+          local reagentId = TradeHelper:GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, reagentIndex))
           local price = inkPrice[reagentId] or parchmentPrice[reagentId]
           if price == nil then cost = nil; break end
           cost = cost + price * reagentCount
@@ -360,7 +360,7 @@ function ScribeHelper:PickGlyph()
           local reagentId, count
           for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
             local reagent = GetTradeSkillReagentItemLink(recipeIndex, reagentIndex)
-            reagentId = Enchantrix.Util.GetItemIdFromLink(reagent)
+            reagentId = TradeHelper:GetItemIdFromLink(reagent)
             if inkPrice[reagentId] then
               _, _, count = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
               break
@@ -444,10 +444,10 @@ function ScribeHelper:GetInkInfo(marketPercent)
   for recipeIndex=1, GetNumTradeSkills() do
     local name = GetTradeSkillInfo(recipeIndex)
     if name:find("Ink") then
-      local inkId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillItemLink(recipeIndex))
+      local inkId = TradeHelper:GetItemIdFromLink(GetTradeSkillItemLink(recipeIndex))
       local inkCount = GetTradeSkillNumMade(recipeIndex)
       local _, _, pigmentCount = GetTradeSkillReagentInfo(recipeIndex, 1)
-      local pigmentId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, 1))
+      local pigmentId = TradeHelper:GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, 1))
       inkPrice[inkId] = floor(pigmentPrice[pigmentId] * pigmentCount / inkCount)
       inkReagent[inkId] = {id = pigmentId, count = pigmentCount / inkCount}
     end
@@ -480,13 +480,13 @@ function ScribeHelper:GetSelfMadeVellumPrice()
       local cost = 0
       for reagentIndex=1, GetTradeSkillNumReagents(recipeIndex) do
         local _, _, reagentCount = GetTradeSkillReagentInfo(recipeIndex, reagentIndex)
-        local reagentId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, reagentIndex))
+        local reagentId = TradeHelper:GetItemIdFromLink(GetTradeSkillReagentItemLink(recipeIndex, reagentIndex))
         local price = inkPrice[reagentId] or parchmentPrice[reagentId]
         if price == nil then cost = nil; break end
         cost = cost + price * reagentCount
       end
       if cost then
-        local vellumId = Enchantrix.Util.GetItemIdFromLink(GetTradeSkillItemLink(recipeIndex))
+        local vellumId = TradeHelper:GetItemIdFromLink(GetTradeSkillItemLink(recipeIndex))
         vellumPrice[vellumId] = math.ceil(cost / vellumCount)
       end
     end
